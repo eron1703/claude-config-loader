@@ -1,0 +1,62 @@
+# Development Environment Configuration
+#
+# Information about the development machine and setup
+
+# Folder Structure
+workspace:
+  root: ~/projects/
+  description: "All development projects are in ~/projects/"
+  projects:
+    - resolver
+    - flowmaster
+    - claude-config-loader
+    - test-rig
+  notes: "Create new projects as subdirectories of ~/projects/"
+
+# Containerization
+docker:
+  platform: orbstack
+  notes: |
+    - Using OrbStack (not Docker Desktop)
+    - NEVER shut down Docker/OrbStack service globally
+    - NEVER use: docker system prune -a
+    - NEVER use: orbstack stop (stops entire service)
+    - Multiple users/agents use this machine in parallel
+    - Only manage individual containers, not the service
+
+  safe_commands:
+    - "docker-compose up/down"
+    - "docker stop <container>"
+    - "docker rm <container>"
+    - "docker-compose restart <service>"
+
+  dangerous_commands:
+    - "orbstack stop (NEVER USE)"
+    - "docker system prune -a (NEVER USE)"
+    - "killall Docker (NEVER USE)"
+    - "systemctl stop docker (NEVER USE)"
+
+# Port Management
+ports:
+  strategy: "Use non-standard ports consistently"
+  ranges:
+    backend: "9000-9099"
+    frontend: "3000-3099"
+    databases: "5432, 8529, 27017"
+  notes: "Always check port availability before use: lsof -i :PORT"
+
+# Multi-User Environment
+environment_type: "multi-user/multi-agent"
+notes: |
+  - Multiple supervisor agents work in parallel
+  - Multiple human users may be active
+  - Don't interfere with other users' containers
+  - Stick to assigned ports
+  - Don't change global configurations
+
+# Operating System
+os:
+  type: macOS
+  user: benjaminhippler
+  shell: bash
+  home: /Users/benjaminhippler

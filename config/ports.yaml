@@ -1,0 +1,281 @@
+# Port Allocation for All Projects
+#
+# Keep this file updated when adding new services or projects
+# Format: project_name -> service_name -> port_number
+#
+# ALL PROJECTS ARE IN: ~/projects/
+
+# === ACTIVE PROJECTS ===
+
+resolver:
+  netbox-postgres: 5439
+  netbox-redis: 6379 (internal)
+  netbox: 8080
+  arangodb: 8529
+  arangodb_web: 8530
+  backend: 9000
+  frontend: 3001
+  description: "Network incident analysis with real-time correlation"
+  repo: ~/projects/resolver
+  notes: "Uses NetBox for network inventory, ArangoDB for correlation graphs"
+
+commander:
+  arangodb: 8529
+  backend: 3000
+  frontend: 5173
+  approvals-worker: 3002
+  playbooks-worker: 3003
+  notifications-worker: 3004
+  description: "Enterprise SDLC orchestration platform"
+  repo: ~/projects/commander
+  notes: "Modular worker architecture, own ArangoDB instance"
+
+flowmaster:
+  arangodb: 8531
+  arangodb_web: 8532
+  backend: 8002
+  frontend: 3000  # Maps to container 5173
+  mcp-postgres: 3001
+  employee-app-backend: 8001
+  employee-app-frontend: 3003
+  manager-app: 3005
+  guard-mobile-backend: 8004
+  guard-mobile-frontend: 3004
+  fm-sql-air-cargo-db: 5436
+  flowmaster-global-db: 5435
+  employee-db: 5437
+  flowmaster-message-redis: 6383
+  employee-redis: 6380
+  description: "Complete workflow management and orchestration platform"
+  repo: ~/projects/flowmaster
+  notes: "Large system with employee, manager, guard apps. Multiple databases."
+
+dxg:
+  dxg-db: 5438
+  dxg-redis: 6381
+  dxg-backend: 8005
+  dxg-frontend: 3006
+  description: "Dynamic experience generator with OpenAI integration"
+  repo: ~/projects/dxg
+  notes: "Python backend, React frontend, OpenAI API integration"
+
+engage:
+  engage-frontend: 3010
+  engage-mcp-server: 8020
+  engage-collaboration: 8021
+  engage-preferences: 8022
+  redis: 6379
+  postgres: 5432
+  description: "Engagement platform with MCP and collaboration services"
+  repo: ~/projects/engage
+  notes: "Connects to demo server ArangoDB (65.21.153.235:8529), uses DXG API"
+
+sdx:
+  sdx-backend: 8010
+  sdx-frontend: 3011  # Changed from 3010 to resolve conflict with engage
+  sdx-mcp-server: 8011
+  description: "Secure data exchange platform"
+  repo: ~/projects/sdx
+  notes: "Uses external ArangoDB from flowmaster and resolver projects"
+
+claude-config-loader:
+  description: "Claude Code configuration management"
+  repo: ~/projects/claude-config-loader
+  notes: "No services, configuration files only"
+
+# === ARCHIVED / DOCUMENTATION PROJECTS ===
+
+documentation:
+  # Infrastructure
+  postgres-core: 5432
+  postgres-user: 5433
+  postgres-workflow: 5434
+  postgres-analytics: 5435
+  redis: 6379
+  zookeeper: 2181
+  kafka: 9092
+  kafka-internal: 29092
+  arangodb: 8529
+
+  # Microservices
+  service-registry: 8001
+  auth-service: 8002
+  event-bus: 9013
+  api-gateway: 9000
+  websocket-gateway: 9010
+  notification-service: 8006
+  data-hub-service: 8009
+  integration-hub-service: 8010
+  ai-agent-service: 9001
+  document-intelligence: 9002
+  process-design: 9003
+  execution-engine: 9005
+  human-task-service: 9006
+  scheduling-service: 9008
+  frontend: 3000
+
+  description: "Large FlowMaster microservices architecture documentation"
+  repo: ~/projects/documentation
+  notes: "15+ services, full microservices stack with Kafka, multiple Postgres instances"
+
+# === PORT RANGES BY SERVICE TYPE ===
+
+port_ranges:
+  backend_apis: "9000-9099"
+  backend_services: "8000-8099"
+  frontend_dev_servers: "3000-3099"
+  postgres_databases: "5432-5499"
+  arangodb_main: "8529 (web UI: 8530)"
+  arangodb_secondary: "8531+ (web UI: 8532+)"
+  redis: "6379-6399"
+  kafka: "9092, 29092"
+  zookeeper: "2181"
+
+# === PORT CONFLICTS ===
+
+conflicts:
+  resolved:
+    - "flowmaster uses 8002 for backend instead of 9000 to avoid resolver conflict"
+    - "flowmaster arangodb on 8531 instead of 8529 to avoid resolver conflict"
+    - "commander uses 8529 but different container name"
+
+  active_conflicts: []
+  resolved_conflicts:
+    - port: 3010
+      projects:
+        - engage (engage-frontend)
+        - sdx (sdx-frontend) - RESOLVED: moved to 3011
+      resolution: "Changed sdx-frontend to port 3011"
+      date_resolved: "2026-02-06"
+
+    - port: 8529
+      projects:
+        - resolver (arangodb)
+        - commander (arangodb)
+        - documentation (arangodb)
+      status: "OK if not running simultaneously"
+      note: "Different container names, can coexist if using different Docker networks"
+
+    - port: 5432
+      projects:
+        - engage (postgres)
+        - documentation (postgres-core)
+      status: "OK if not running simultaneously"
+
+    - port: 6379
+      projects:
+        - engage (redis)
+        - documentation (redis)
+      status: "OK if not running simultaneously"
+
+# === EXTERNAL CONNECTIONS ===
+
+external:
+  demo_server:
+    arangodb: "65.21.153.235:8529"
+    used_by:
+      - engage (collaboration service connects to this)
+    notes: "Demo server ArangoDB, configured in engage docker-compose"
+
+# === NETWORK ISOLATION ===
+
+networks:
+  netbox-network:
+    projects:
+      - resolver
+    subnet: "172.27.0.0/16"
+
+  flowcommander-net:
+    projects:
+      - commander
+    subnet: "172.21.0.0/16"
+
+  flowmaster-network:
+    projects:
+      - flowmaster
+      - documentation
+      - sdx (uses external networks)
+    subnet: "172.28.0.0/16"
+
+  dxg-network:
+    projects:
+      - dxg
+    isolated: true
+
+  engage-network:
+    projects:
+      - engage
+    isolated: true
+
+# === PORT ALLOCATION GUIDELINES ===
+
+guidelines:
+  - "Always check port availability before use: lsof -i :PORT"
+  - "Use consistent ports across restarts for same project"
+  - "Document new ports immediately in this file"
+  - "Prefer non-standard ports (avoid 80, 443, 8080, 3000 for new projects)"
+  - "Check for conflicts before starting containers"
+  - "Use Docker networks for isolation when running multiple projects"
+
+# === QUICK REFERENCE BY PORT ===
+
+by_port:
+  "3000": "commander (backend), flowmaster (frontend), documentation (frontend)"
+  "3001": "resolver (frontend), flowmaster (mcp-postgres)"
+  "3002": "commander (approvals-worker)"
+  "3003": "commander (playbooks-worker), flowmaster (employee-app-frontend)"
+  "3004": "commander (notifications-worker), flowmaster (guard-mobile-frontend)"
+  "3005": "flowmaster (manager-app)"
+  "3006": "dxg (frontend)"
+  "3010": "engage (frontend)"
+  "3011": "sdx (frontend)"
+  "5173": "commander (frontend container internal)"
+  "5432": "engage (postgres), documentation (postgres-core)"
+  "5433": "documentation (postgres-user)"
+  "5434": "documentation (postgres-workflow)"
+  "5435": "documentation (postgres-analytics), flowmaster (flowmaster-global-db)"
+  "5436": "flowmaster (fm-sql-air-cargo-db)"
+  "5437": "flowmaster (employee-db)"
+  "5438": "dxg (dxg-db)"
+  "5439": "resolver (netbox-postgres)"
+  "6379": "engage (redis), documentation (redis)"
+  "6380": "flowmaster (employee-redis)"
+  "6381": "dxg (dxg-redis)"
+  "6383": "flowmaster (flowmaster-message-redis)"
+  "8001": "documentation (service-registry), flowmaster (employee-app-backend)"
+  "8002": "documentation (auth-service), flowmaster (backend)"
+  "8004": "flowmaster (guard-mobile-backend)"
+  "8005": "dxg (backend)"
+  "8006": "documentation (notification-service)"
+  "8009": "documentation (data-hub-service)"
+  "8010": "documentation (integration-hub-service), sdx (backend)"
+  "8011": "sdx (mcp-server)"
+  "8020": "engage (mcp-server)"
+  "8021": "engage (collaboration)"
+  "8022": "engage (preferences)"
+  "8080": "resolver (netbox)"
+  "8529": "resolver (arangodb), commander (arangodb), documentation (arangodb)"
+  "8530": "resolver (arangodb web UI)"
+  "8531": "flowmaster (arangodb)"
+  "8532": "flowmaster (arangodb web UI - inferred)"
+  "9000": "resolver (backend), documentation (api-gateway)"
+  "9001": "documentation (ai-agent-service)"
+  "9002": "documentation (document-intelligence)"
+  "9003": "documentation (process-design)"
+  "9005": "documentation (execution-engine)"
+  "9006": "documentation (human-task-service)"
+  "9008": "documentation (scheduling-service)"
+  "9010": "documentation (websocket-gateway)"
+  "9013": "documentation (event-bus)"
+  "9092": "documentation (kafka)"
+  "29092": "documentation (kafka-internal)"
+  "2181": "documentation (zookeeper)"
+
+# === DEMO SERVER PORTS ===
+
+demo_server_65_21_153_235:
+  arangodb: 8529
+  used_by:
+    - "engage project (collaboration service)"
+  access: "Remote connection from local containers"
+  notes: "Public IP, ensure proper security"

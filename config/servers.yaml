@@ -1,0 +1,87 @@
+# Server and Infrastructure Information
+#
+# Document all servers, VMs, and infrastructure resources
+
+servers:
+  # Example structure - customize for your environment
+  # production_api:
+  #   host: api.example.com
+  #   ip: 192.168.1.100
+  #   purpose: "Production API server"
+  #   access: "SSH via bastion"
+  #   credentials: "See 1Password: Production Servers"
+  #
+  # staging_api:
+  #   host: staging-api.example.com
+  #   ip: 192.168.1.101
+  #   purpose: "Staging environment"
+  #   access: "Direct SSH"
+  #   credentials: "See 1Password: Staging"
+
+  localhost:
+    host: localhost
+    ip: 127.0.0.1
+    purpose: "Local development environment"
+    access: "Direct"
+    platform: "macOS with OrbStack"
+    docker: "OrbStack (NOT Docker Desktop)"
+    workspace: "~/projects/"
+    notes: |
+      - All development happens locally via Docker/OrbStack
+      - Multiple users/agents work in parallel
+      - NEVER shut down OrbStack service globally
+      - Only manage individual containers
+
+  demo-server:
+    host: demo-server
+    ip: 65.21.153.235
+    purpose: "Demo/staging server for testing and demos"
+    access: "SSH (see connection details below)"
+    platform: "Linux"
+    services:
+      - arangodb:8529 (used by engage project)
+    connection:
+      user_ben:
+        host: demo-server
+        hostname: 65.21.153.235
+        user: ben
+        port: 22
+        identity_file: ~/.ssh/ben_demo
+        connect: "ssh demo-server"
+      user_root:
+        host: demo-server-root
+        hostname: 65.21.153.235
+        user: root
+        port: 22
+        identity_file: ~/.ssh/id_ed25519_demo
+        connect: "ssh demo-server-root"
+    notes: |
+      - Configured in ~/.ssh/config with two access methods
+      - ben user: ssh demo-server (key: ~/.ssh/ben_demo)
+      - root user: ssh demo-server-root (key: ~/.ssh/id_ed25519_demo)
+      - engage project connects to ArangoDB on this server
+      - Used for demos and staging deployments
+
+# Cloud Resources
+cloud:
+  # aws:
+  #   account_id: "123456789012"
+  #   region: us-east-1
+  #   resources:
+  #     - EC2 instances
+  #     - RDS databases
+  #     - S3 buckets
+  #   credentials: "AWS CLI configured with profile 'default'"
+
+# Access Patterns
+access:
+  # bastion:
+  #   host: bastion.example.com
+  #   purpose: "Jump host for production access"
+  #   credentials: "SSH key in ~/.ssh/bastion_key"
+
+# Notes
+notes:
+  - "Never store passwords in this file"
+  - "Use references to password managers (1Password, LastPass, etc.)"
+  - "Update this file when infrastructure changes"

@@ -1,0 +1,17 @@
+# GitLab Configuration
+# Used for accessing team credentials via GitLab CI/CD Variables
+
+gitlab:
+  group: flow-master
+  hostname: gitlab.com
+  token_env: GITLAB_TOKEN  # Token stored in environment variable
+
+  # Available credentials in flow-master group:
+  credentials:
+    - DEMO_SERVER
+    - SSH_KNOWN_HOSTS
+    - SSH_PRIVATE_KEY_B64
+    - SSH_PRIVATE_KEY
+
+  # Usage:
+  # glab variable get CREDENTIAL_NAME --group flow-master

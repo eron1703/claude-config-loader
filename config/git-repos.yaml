@@ -1,0 +1,401 @@
+# GitHub and GitLab Repositories
+#
+# Document all repositories and their purposes
+
+repositories:
+  # === ACTIVE PROJECTS ===
+
+  resolver:
+    type: github
+    url: https://github.com/eron1703/flow-resolver
+    description: "Network incident analysis with real-time correlation graphs"
+    local_path: ~/projects/resolver
+    primary_branch: main
+    status: active
+    containers:
+      - netbox-postgres:5439
+      - netbox-redis
+      - netbox:8080
+      - arangodb:8529
+      - backend:9000
+      - frontend:3001
+    dependencies:
+      databases:
+        - arangodb (shared with flowmaster)
+        - netbox postgres
+    tests: yes
+    notes: "WebSocket-based incident analysis, uses ArangoDB for correlation graphs"
+
+  commander:
+    type: github (HCB-Consulting-ME)
+    url: https://github.com/HCB-Consulting-ME/flow-commander
+    description: "Enterprise SDLC orchestration platform"
+    local_path: ~/projects/commander
+    primary_branch: main
+    status: active
+    containers:
+      - arangodb:8529
+      - backend:3000
+      - frontend:5173
+      - approvals-worker:3002
+      - playbooks-worker:3003
+      - notifications-worker:3004
+    dependencies:
+      databases:
+        - arangodb (own instance)
+    tests: yes
+    notes: "Modular architecture with separate worker services"
+
+  flowmaster:
+    type: github (HCB-Consulting-ME)
+    url: https://github.com/HCB-Consulting-ME/ea-mcp
+    description: "Complete workflow management and orchestration platform"
+    local_path: ~/projects/flowmaster
+    primary_branch: main
+    status: active
+    containers:
+      - arangodb:8531
+      - backend:8002
+      - frontend:3000
+      - mcp-postgres:3001
+      - employee-app-backend:8001
+      - employee-app-frontend:3003
+      - manager-app:3005
+      - guard-mobile-backend:8004
+      - guard-mobile-frontend:3004
+      - fm-sql-air-cargo:5436
+      - flowmaster-global-db:5435
+      - employee-db:5437
+      - flowmaster-message-redis:6383
+      - employee-redis:6380
+    dependencies:
+      databases:
+        - arangodb (own instance)
+        - multiple postgres instances
+        - redis instances
+    tests: yes
+    notes: "Large microservices system with multiple apps (employee, manager, guard)"
+
+  dxg:
+    type: github (HCB-Consulting-ME)
+    url: https://github.com/HCB-Consulting-ME/dxg
+    description: "Dynamic experience generator with OpenAI integration"
+    local_path: ~/projects/dxg
+    primary_branch: main
+    status: active
+    containers:
+      - dxg-db:5438
+      - dxg-redis:6381
+      - dxg-backend:8005
+      - dxg-frontend:3006
+    dependencies:
+      databases:
+        - postgres (own instance)
+        - redis (own instance)
+    tests: no
+    notes: "Python backend with React frontend, OpenAI integration"
+
+  engage:
+    type: local only
+    url: none
+    description: "Engagement platform with MCP server and collaboration services"
+    local_path: ~/projects/engage
+    primary_branch: main
+    status: active
+    containers:
+      - engage-frontend:3010
+      - engage-mcp-server:8020
+      - engage-collaboration:8021
+      - engage-preferences:8022
+      - redis:6379
+      - postgres:5432
+    dependencies:
+      databases:
+        - demo server arangodb (65.21.153.235:8529)
+        - local postgres
+        - local redis
+    tests: no
+    notes: "Connects to demo server ArangoDB, uses DXG API via host.docker.internal"
+
+  sdx:
+    type: github (HCB-Consulting-ME)
+    url: https://github.com/HCB-Consulting-ME/sdx
+    description: "Secure data exchange platform"
+    local_path: ~/projects/sdx
+    primary_branch: main
+    status: active
+    containers:
+      - sdx-backend:8010
+      - sdx-frontend:3010
+      - sdx-mcp-server:8011
+      - sdx-test (profile: test)
+    dependencies:
+      databases:
+        - flowmaster arangodb (external network)
+        - resolver arangodb (external network)
+    tests: yes
+    notes: "Uses external ArangoDB from flowmaster and resolver projects"
+
+  claude-config-loader:
+    type: local only
+    url: none
+    description: "Claude Code configuration management with skills system"
+    local_path: ~/projects/claude-config-loader
+    primary_branch: main
+    status: active
+    containers: none
+    notes: "Skills-based progressive disclosure config system for Claude Code"
+
+  test-rig:
+    type: local only
+    url: https://github.com/HCB-Consulting-ME/test-rig
+    description: "Multi-agent testing infrastructure for monoliths and microservices"
+    local_path: ~/projects/test-rig
+    primary_branch: main
+    status: active
+    containers: none
+    tests: yes
+    notes: "Standalone CLI tool for test generation and parallel execution. Integrates with claude-config-loader via /testing skill"
+
+  # === ARCHIVED / DOCUMENTATION ===
+
+  documentation:
+    type: local only
+    url: none
+    description: "Large flowmaster microservices documentation and docker-compose"
+    local_path: ~/projects/documentation
+    primary_branch: none
+    status: archived
+    containers:
+      - Full microservices stack (15+ services)
+      - postgres instances (5432-5435)
+      - redis:6379
+      - zookeeper:2181
+      - kafka:9092/29092
+      - arangodb:8529
+      - Multiple service ports (8001-8010, 9000-9010)
+    notes: "Large reference implementation with full microservices architecture"
+
+  flowmaster-engage:
+    type: local only
+    url: none
+    description: "Legacy engage implementation"
+    local_path: ~/projects/flowmaster-engage
+    primary_branch: none
+    status: archived
+    notes: "Superseded by engage project"
+
+  flow-commander:
+    type: local only
+    url: none
+    description: "Early commander prototype"
+    local_path: ~/projects/flow-commander
+    primary_branch: none
+    status: archived
+    notes: "Superseded by commander project"
+
+  # === EXTERNAL FORKS ===
+
+  SuperClaude:
+    type: github (fork)
+    url: https://github.com/NomenAK/SuperClaude.git
+    description: "Enhanced Claude interface - forked project"
+    local_path: ~/projects/SuperClaude
+    primary_branch: main
+    status: reference
+    notes: "External project, not actively developed"
+
+  plane-mcp-server:
+    type: github (fork)
+    url: https://github.com/kelvin6365/plane-mcp-server.git
+    description: "Plane project management MCP server"
+    local_path: ~/projects/plane-mcp-server
+    primary_branch: main
+    status: reference
+    notes: "External MCP server implementation for Plane"
+
+  # === ARCHIVED FOLDERS ===
+
+  process-descriptions:
+    type: local only
+    url: none
+    description: "Process documentation archive"
+    local_path: ~/projects/process-descriptions
+    status: archived
+
+  claude_code:
+    type: local only
+    url: none
+    description: "Claude code experiments"
+    local_path: ~/projects/claude_code
+    status: archived
+
+  _old_but_keep:
+    type: local only
+    url: none
+    description: "Archive of old projects to preserve"
+    local_path: ~/projects/_old_but_keep
+    status: archived
+
+# === OTHER GITHUB REPOS (not local) ===
+
+remote_only:
+  flow-commander-github:
+    type: github
+    url: https://github.com/eron1703/flow-commander
+    description: "Enterprise SDLC Orchestration Platform"
+    local_path: none (see commander in local projects)
+    notes: "Main repo is HCB-Consulting-ME version"
+
+  flowmaster-github:
+    type: github
+    url: https://github.com/eron1703/flowmaster
+    description: "Complete workflow management platform"
+    local_path: ~/projects/flowmaster
+    notes: "Active development version"
+
+  flowmaster-databases:
+    type: github
+    url: https://github.com/eron1703/flowmaster-databases
+    description: "FlowMaster database dumps and schemas"
+    notes: "PostgreSQL, ArangoDB, Redis schemas"
+
+  flowmaster-website:
+    type: github
+    url: https://github.com/eron1703/flowmaster-website
+    description: "FlowMaster corporate website (WordPress + Elementor)"
+    notes: "Marketing site"
+
+  itms:
+    type: github
+    url: https://github.com/eron1703/itms
+    description: "IT Management Simulation Platform"
+    notes: "Infrastructure simulation and chaos engineering"
+
+  ats-microservices:
+    type: github
+    url: https://github.com/eron1703/ats-microservices
+    description: "Enterprise Applicant Tracking System"
+    notes: "Microservices architecture on Kubernetes"
+
+  legacy-med:
+    type: github
+    url: https://github.com/eron1703/legacy-med
+    description: "Legacy Medical Claims System"
+    notes: "Member, Officer, and Provider Portals"
+
+  flowpay-mcp-server:
+    type: github
+    url: https://github.com/eron1703/flowpay-mcp-server
+    description: "AI agent payment system with circuit breaker"
+    notes: "12 MCP tools for payments, wallets, transactions"
+
+  mcp-payment-server:
+    type: github
+    url: https://github.com/eron1703/mcp-payment-server
+    description: "Token-based auth and payment for AI agents"
+    notes: "Microservices architecture"
+
+  hcb-consulting-me:
+    type: github
+    url: https://github.com/eron1703/hcb-consulting-me
+    description: "HCB Consulting Middle East website"
+    notes: "AI-driven strategy consulting"
+
+  claude-manager:
+    type: github
+    url: https://github.com/eron1703/claude-manager
+    description: "Next Level Claude Code Management"
+
+  rfp-response-generator:
+    type: github
+    url: https://github.com/eron1703/rfp-response-generator
+    description: "AI-powered RFP response generator"
+    notes: "Unified project management, slide reordering, vector matching"
+
+  catheye-test-rig:
+    type: github
+    url: https://github.com/eron1703/catheye-test-rig
+    description: "NIR Medical Imaging Test Platform"
+    notes: "Professional test rig for catheter port detection"
+
+  fm3-agent-system:
+    type: github
+    url: https://github.com/eron1703/fm3-agent-system
+    description: "Multi-agent system for task decomposition"
+
+  dr-lala:
+    type: github
+    url: https://github.com/eron1703/dr-lala
+    description: "Study platform for GMU Admission Tests"
+
+  dr-lala-survey-master:
+    type: github
+    url: https://github.com/eron1703/dr-lala-survey-master
+    description: "Survey system for dr-lala"
+
+  notconner_ADHD_test:
+    type: github
+    url: https://github.com/eron1703/notconner_ADHD_test
+    description: "ADHD assessment test"
+
+  chatbot-ui:
+    type: github
+    url: https://github.com/eron1703/chatbot-ui
+    description: "AI chat for any model"
+
+# === PORT CONFLICT NOTES ===
+port_conflicts:
+  "8529": "arangodb - shared by commander, flowmaster, resolver, documentation (need coordination)"
+  "3000": "frontend - used by commander, flowmaster (port 3000 externally maps to 5173 in flowmaster)"
+  "3010": "frontend - conflict between engage and sdx"
+  "5432": "postgres - used by documentation/flowmaster (5432), engage (5432)"
+
+# Organization
+organizations:
+  personal:
+    platform: github
+    url: https://github.com/eron1703
+    access: "Personal access token in ~/.gitconfig"
+
+  hcb_consulting:
+    platform: github
+    url: https://github.com/HCB-Consulting-ME
+    access: "Organization member access"
+    projects:
+      - commander (flow-commander)
+      - flowmaster (ea-mcp)
+      - dxg
+      - sdx
+
+# Access Patterns
+access:
+  github_ssh: |
+    # SSH keys configured in ~/.ssh/config
+    # Host github.com
+    #   IdentityFile ~/.ssh/id_ed25519
+    #   User git
+
+  github_https: |
+    # Personal access token stored in git credential helper
+    # git config --global credential.helper osxkeychain
+
+# Workflow
+workflow:
+  branching: "Feature branches from main"
+  commits: "Conventional commits (feat:, fix:, docs:, etc.)"
+  prs: "Required for all changes, squash and merge"
+  ci: "See cicd.yaml for pipeline configuration"
+
+# Dependencies Graph
+dependency_notes: |
+  Database sharing:
+  - resolver + flowmaster share ArangoDB pattern (different instances)
+  - sdx uses both flowmaster and resolver ArangoDB instances
+  - engage connects to demo server ArangoDB
+  - commander has own ArangoDB instance
+
+  Service integration:
+  - engage uses dxg API via host.docker.internal:8005
+  - flowmaster has internal services calling each other
+  - employee-app calls flowmaster backend

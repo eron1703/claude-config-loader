@@ -1,0 +1,32 @@
+# Sensitive information
+config/secrets.yaml
+config/credentials.yaml
+*.secret
+*.key
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.bak
+*_SUMMARY.md
+*_STATUS.md
+test-*
+
+# Screenshots and images (unless in docs/)
+/*.png
+/*.jpg
+/*.jpeg
+/*.gif

@@ -1,0 +1,143 @@
+# CI/CD Pipeline Configuration
+#
+# Document all CI/CD pipelines, deployments, and automation
+
+pipelines:
+  # Example structure:
+  # project_name:
+  #   platform: github_actions | gitlab_ci | jenkins
+  #   config_file: .github/workflows/ci.yml
+  #   triggers:
+  #     - push to main
+  #     - pull requests
+  #   stages:
+  #     - lint
+  #     - test
+  #     - build
+  #     - deploy
+  #   environments:
+  #     staging: auto-deploy on merge to main
+  #     production: manual approval required
+
+  resolver:
+    platform: github_actions
+    config_file: .github/workflows/ci.yml
+    triggers:
+      - "Push to main"
+      - "Pull requests"
+    stages:
+      - lint
+      - test
+      - build
+    notes: "Local development via Docker Compose, uses NetBox and ArangoDB"
+
+  commander:
+    platform: github_actions
+    config_file: .github/workflows/ci.yml (if exists)
+    repo: https://github.com/HCB-Consulting-ME/flow-commander
+    triggers:
+      - "Push to main"
+      - "Pull requests"
+    stages:
+      - lint
+      - test
+      - build
+      - docker-build
+    notes: "HCB-Consulting-ME org repo, modular architecture with workers"
+
+  flowmaster:
+    platform: github_actions
+    config_file: .github/workflows/ci.yml (if exists)
+    repo: https://github.com/HCB-Consulting-ME/ea-mcp
+    triggers:
+      - "Push to main"
+      - "Pull requests"
+    stages:
+      - lint
+      - test
+      - build
+    notes: "Large microservices system, multiple apps"
+
+  dxg:
+    platform: github_actions
+    config_file: .github/workflows/ci.yml (if exists)
+    repo: https://github.com/HCB-Consulting-ME/dxg
+    triggers:
+      - "Push to main"
+      - "Pull requests"
+    stages:
+      - lint
+      - test
+      - build
+    notes: "Python backend with pytest, React frontend"
+
+  sdx:
+    platform: github_actions
+    config_file: .github/workflows/ci.yml (if exists)
+    repo: https://github.com/HCB-Consulting-ME/sdx
+    triggers:
+      - "Push to main"
+      - "Pull requests"
+    stages:
+      - lint
+      - test
+      - build
+    notes: "Secure data exchange, uses external ArangoDB"
+
+# Deployment Targets
+deployments:
+  # staging:
+  #   platform: aws | gcp | azure | digitalocean
+  #   method: docker | kubernetes | serverless
+  #   url: https://staging.example.com
+  #   trigger: "Automatic on merge to main"
+  #
+  # production:
+  #   platform: aws
+  #   method: kubernetes
+  #   url: https://example.com
+  #   trigger: "Manual approval required"
+  #   approval_required: true
+
+  local:
+    method: docker_compose
+    trigger: "Manual: docker-compose up"
+    notes: "All development happens locally"
+
+# Secrets Management
+secrets:
+  # production:
+  #   method: aws_secrets_manager | vault | github_secrets
+  #   access: "See documentation in docs/secrets.md"
+  #
+  # staging:
+  #   method: environment_variables
+  #   access: "Set in CI/CD platform"
+
+  local:
+    method: .env files
+    notes: "Each project has .env file (gitignored)"
+    example: |
+      # .env example
+      ARANGO_PASSWORD=your_password_here
+      API_KEY=your_api_key_here
+
+# Monitoring & Alerts
+monitoring:
+  # production:
+  #   platform: datadog | newrelic | prometheus
+  #   dashboards:
+  #     - API Performance
+  #     - Error Rates
+  #     - Infrastructure
+  #   alerts:
+  #     - Error rate > 1%
+  #     - Response time > 500ms
+
+# Best Practices
+best_practices:
+  - "Never commit secrets to git"
+  - "Use environment variables for configuration"
+  - "Test CI/CD changes in feature branches"
+  - "Require code review before deployment"
+  - "Have rollback plan for production deploys"

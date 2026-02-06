@@ -1,0 +1,194 @@
+# Database Relationships and Shared Resources
+#
+# Documents which databases are shared across projects and their schemas
+
+# Shared Database Instances
+shared_instances:
+  arangodb_main:
+    type: arangodb
+    host: localhost
+    port: 8529
+    web_ui: http://localhost:8530
+    shared_by:
+      - resolver
+      - flowmaster
+    credentials: "Check .env files in each project"
+    notes: "Main ArangoDB instance for incident analysis ecosystem"
+
+# Project-Specific Databases
+project_databases:
+  resolver:
+    instance: arangodb_resolver
+    database: flow_resolver
+    local_path: ~/projects/resolver
+    port: 8529
+    collections:
+      documents:
+        - cases: "Incident cases"
+        - events: "Events associated with cases"
+        - contexts: "Aggregated contexts for analysis"
+        - analyses: "Analysis results and recommendations"
+      edges:
+        - correlations: "Correlation relationships between contexts"
+    graph: correlation_graph
+    additional_databases:
+      - type: postgres
+        name: netbox
+        port: 5439
+        purpose: "Network inventory (NetBox)"
+      - type: redis
+        name: netbox-redis
+        purpose: "NetBox caching"
+    notes: "Incident analysis and correlation database, uses NetBox for network data"
+
+  commander:
+    instance: arangodb_commander
+    database: flowcommander
+    local_path: ~/projects/commander
+    port: 8529
+    collections:
+      documents:
+        - workflows: "Workflow definitions"
+        - approvals: "Approval requests"
+        - playbooks: "Playbook definitions"
+        - notifications: "Notification queue"
+        - workitems: "Work items"
+        - streams: "Data streams"
+        - artifacts: "Build/deployment artifacts"
+        - lineage: "Data lineage tracking"
+        - metrics: "Performance metrics"
+    notes: "SDLC orchestration database, own ArangoDB instance"
+
+  flowmaster:
+    instance: arangodb_flowmaster
+    database: flowmaster
+    local_path: ~/projects/flowmaster
+    port: 8531
+    collections:
+      documents:
+        - workflows: "Workflow definitions"
+        - tasks: "Individual workflow tasks"
+        - executions: "Workflow execution history"
+    additional_databases:
+      - type: postgres
+        name: fm-sql-air-cargo
+        port: 5436
+        purpose: "Air cargo operations"
+      - type: postgres
+        name: flowmaster-global-db
+        port: 5435
+        purpose: "Cross-customer global settings"
+      - type: postgres
+        name: employee-db
+        port: 5437
+        purpose: "Employee app database"
+      - type: redis
+        name: flowmaster-message-redis
+        port: 6383
+        purpose: "Message bus"
+      - type: redis
+        name: employee-redis
+        port: 6380
+        purpose: "Employee app caching"
+    notes: "Large workflow system with multiple apps and databases"
+
+  dxg:
+    local_path: ~/projects/dxg
+    databases:
+      - type: postgres
+        name: dxg
+        port: 5438
+        purpose: "Main application database"
+      - type: redis
+        name: dxg-redis
+        port: 6381
+        purpose: "Caching layer"
+    notes: "Dynamic experience generator, Python backend with OpenAI integration"
+
+  engage:
+    local_path: ~/projects/engage
+    databases:
+      - type: arangodb
+        name: demo-server-arangodb
+        host: 65.21.153.235
+        port: 8529
+        purpose: "Collaboration data (remote)"
+      - type: postgres
+        name: engage-preferences
+        port: 5432
+        purpose: "User preferences"
+      - type: redis
+        name: redis
+        port: 6379
+        purpose: "Session management"
+    notes: "Connects to demo server ArangoDB, uses DXG API for generation"
+
+  sdx:
+    local_path: ~/projects/sdx
+    databases:
+      - type: arangodb (external)
+        source: flowmaster
+        purpose: "Data exchange via flowmaster ArangoDB"
+      - type: arangodb (external)
+        source: resolver
+        purpose: "Data exchange via resolver ArangoDB"
+    notes: "Uses external ArangoDB from other projects via Docker networks"
+
+  documentation:
+    local_path: ~/projects/documentation
+    databases:
+      - type: postgres
+        name: flowmaster_core
+        port: 5432
+      - type: postgres
+        name: flowmaster_user
+        port: 5433
+      - type: postgres
+        name: flowmaster_workflow
+        port: 5434
+      - type: postgres
+        name: flowmaster_analytics
+        port: 5435
+      - type: redis
+        port: 6379
+      - type: arangodb
+        port: 8529
+      - type: kafka
+        port: 9092
+        broker_port: 29092
+      - type: zookeeper
+        port: 2181
+    notes: "Full microservices reference implementation with multiple databases"
+
+  # Add your other projects here:
+  # project_name:
+  #   instance: postgres_main
+  #   database: project_db
+  #   tables:
+  #     - users
+  #     - posts
+  #     - comments
+
+# Connection Patterns
+connection_examples:
+  arangodb_python: |
+    from arango import ArangoClient
+    client = ArangoClient(hosts='http://localhost:8529')
+    db = client.db('flow_resolver', username='root', password=os.getenv('ARANGO_PASSWORD'))
+
+  postgres_python: |
+    import psycopg2
+    conn = psycopg2.connect(
+        host="localhost",
+        database="mydb",
+        user=os.getenv('DB_USER'),
+        password=os.getenv('DB_PASSWORD')
+    )
+
+# Best Practices
+best_practices:
+  - "Use separate databases per project (same instance is OK)"
+  - "Never hardcode credentials - use environment variables"
+  - "Keep database passwords in .env files (gitignored)"
+  - "Use indexes for frequently queried fields"
+  - "Document schema changes in migrations"

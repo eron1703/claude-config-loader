@@ -1,0 +1,50 @@
+# Testing Configuration (Minimal)
+# Heavy lifting delegated to external 'test-rig' tool
+
+testing:
+  tool: "test-rig"
+  installation: "npm install -g test-rig"
+  repository: "https://github.com/your-org/test-rig"
+
+  # Project mappings
+  projects:
+    resolver:
+      framework: "vitest"
+      containers: ["postgres:5439", "arangodb:8529", "redis"]
+      parallel_agents: 4
+
+    commander:
+      framework: "vitest"
+      services: 4
+      parallel_agents: 8
+
+    flowmaster:
+      framework: "vitest + pytest"
+      services: 10+
+      parallel_agents: 12
+
+    dxg:
+      framework: "pytest"
+      containers: ["postgres:5438", "redis:6381"]
+      parallel_agents: 4
+
+    engage:
+      framework: "vitest"
+      services: 4
+      parallel_agents: 6
+
+    sdx:
+      framework: "vitest"
+      services: 3
+      parallel_agents: 4
+
+  # Quality gates
+  coverage_targets:
+    unit: 80
+    integration: 60
+
+  # CI/CD integration
+  github_actions:
+    enabled: true
+    parallel_matrix: true
+    coverage_reporting: "codecov"
