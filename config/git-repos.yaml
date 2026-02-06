@@ -137,14 +137,15 @@ repositories:
     notes: "Uses external ArangoDB from flowmaster and resolver projects"
 
   claude-config-loader:
-    type: local only
-    url: none
+    type: both
+    github_url: https://github.com/eron1703/claude-config-loader
+    gitlab_url: https://gitlab.com/flow-master/claude-config-loader
     description: "Claude Code configuration management with skills system"
     local_path: ~/projects/claude-config-loader
     primary_branch: main
     status: active
     containers: none
-    notes: "Skills-based progressive disclosure config system for Claude Code"
+    notes: "Skills-based progressive disclosure config system for Claude Code. Synced to both GitHub and GitLab."
 
   test-rig:
     type: local only
