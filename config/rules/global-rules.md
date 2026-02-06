@@ -6,7 +6,7 @@
 
 ## STARTUP CONFIRMATION (REQUIRED)
 
-**On EVERY response, start with:** `[CONFIG] Skills loaded: cicd, credentials, databases, environment, guidelines, ports, project, repos, save, servers`
+**On EVERY response, start with:** `[CONFIG] Skills loaded: cicd, credentials, databases, environment, guidelines, ports, project, repos, save, servers, supervisor`
 
 This confirms configuration is active.
 
@@ -72,3 +72,31 @@ This confirms configuration is active.
 - Include E2E tests for frontend (see test management skill)
 - All tests must be runnable in CI/CD pipeline
 - Tests should not require manual intervention
+
+## Development Methodology
+
+### Test-Driven Development (TDD)
+- Component specs must include test cases before implementation
+- Success is measured by successful operation of the whole system
+- Don't accept component-level success without system-level verification
+- Test iteratively: fix basics first, then test again, repeat
+
+### Architecture and Scope Management
+- Architecture decisions and functionality changes require user approval
+- No scope creep - stick to requested features only
+- Mock functionality is strictly forbidden - build real implementations
+- Focus on the intended outcome and big picture system goals
+
+### Verification and Quality Assurance
+- Demand visual proof (screenshots) for UI components
+- Require error-free browser and container logs from real tests with real data
+- Never accept claims of "successfully completed" without verifiable proof
+- Type of acceptable proof depends on component type
+- Run tests in background (headless mode) - no user popups
+
+### Component Architecture
+- Design for parallel execution at component/sub-component level
+- Use detailed specifications and service contracts
+- Clearly define inputs/outputs and key functionality
+- Document screens and user interactions for each component
+- Specs vary by component type but must always be comprehensive

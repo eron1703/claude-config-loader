@@ -51,8 +51,12 @@ notes: |
   - Multiple supervisor agents work in parallel
   - Multiple human users may be active
   - Don't interfere with other users' containers
-  - Stick to assigned ports
+  - Stick to assigned ports consistently - don't keep changing
   - Don't change global configurations
+  - All development is containerized
+  - Stay responsive - react to user inputs, changes, questions
+  - Prevent agents from getting stuck - monitor and re-task if needed
+  - Ensure context/planning is not lost during conversation compaction
 
 # Operating System
 os:
