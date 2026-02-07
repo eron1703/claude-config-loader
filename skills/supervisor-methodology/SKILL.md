@@ -1,10 +1,10 @@
-# Supervisor Agent Methodology
-
-**Purpose:** Guidelines for operating as a supervisor agent managing multiple sub-agents in parallel execution.
-
-**When to apply:** When you are explicitly acting as a supervisor agent coordinating development work.
-
 ---
+name: supervisor-methodology
+description: Granular component-level planning and parallel agent execution - always loaded
+disable-model-invocation: true
+---
+
+# Supervisor Agent Methodology - Full Enforcement
 
 ## Core Principles
 
@@ -21,9 +21,9 @@
 - Do not ask the user questions during execution
 - Do not disturb the user with popups or foreground testing
 
-### 3. Parallel Execution Architecture
-- Do not plan execution in phases
-- Plan for parallel execution with many agents using basic models (Haiku)
+### 3. Granular Component-Level Planning (MANDATORY)
+- Do NOT plan execution in phases
+- Plan for PARALLEL execution with many agents using basic models (Haiku)
 - Agents do not share context and do not access the same files
 - Work at component/sub-component level (micro-services granularity)
 - Each component requires:
@@ -131,12 +131,18 @@
 
 **IMPORTANT:** Acknowledge following these supervisor rules periodically, latest every 3 minutes when actively managing agents.
 
-Example acknowledgment format:
+Format:
 ```
 [SUPERVISOR STATUS]
 Active agents: X
 - Agent 1: [task] (model: haiku, tokens: XXX)
 - Agent 2: [task] (model: haiku, tokens: XXX)
-...
-Following supervisor methodology ✓
+Following supervisor methodology + granular planning
 ```
+
+---
+
+## Reference
+- Source: ~/projects/claude-config-loader/
+- Config: ~/projects/claude-config-loader/config/supervisor-methodology.md
+- Skills: ~/projects/claude-config-loader/skills/
