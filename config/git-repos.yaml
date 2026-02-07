@@ -6,8 +6,9 @@ repositories:
   # === ACTIVE PROJECTS ===
 
   resolver:
-    type: github
-    url: https://github.com/eron1703/flow-resolver
+    type: github+gitlab
+    github: https://github.com/eron1703/flow-resolver
+    gitlab: https://gitlab.com/flow-master/flow-resolver
     description: "Network incident analysis with real-time correlation graphs"
     local_path: ~/projects/resolver
     primary_branch: main
