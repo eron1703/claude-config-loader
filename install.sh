@@ -1,105 +1,105 @@
 #!/bin/bash
 
 # Claude Config Loader - Installation Script
-# Run this to install skills and hook to your Claude Code environment
+# Sets up hooks + skills system for Claude Code
+# Run: bash ~/projects/claude-config-loader/install.sh
 
-set -e  # Exit on error
+set -e
 
-echo "🚀 Installing Claude Config Loader..."
+LOADER_DIR=~/projects/claude-config-loader
+CLAUDE_DIR=~/.claude
+
+echo "Installing Claude Config Loader..."
 echo ""
 
 # Create directories
-echo "📁 Creating directories..."
-mkdir -p ~/.claude/skills
-mkdir -p ~/.claude/hooks
+mkdir -p "$CLAUDE_DIR/skills"
+mkdir -p "$CLAUDE_DIR/hooks"
 
-# Install skills (symlink for auto-sync)
-echo "📦 Installing skills..."
-ln -sf ~/projects/claude-config-loader/skills/ports ~/.claude/skills/ports
-ln -sf ~/projects/claude-config-loader/skills/servers ~/.claude/skills/servers
-ln -sf ~/projects/claude-config-loader/skills/databases ~/.claude/skills/databases
-ln -sf ~/projects/claude-config-loader/skills/rules ~/.claude/skills/rules
-ln -sf ~/projects/claude-config-loader/skills/repos ~/.claude/skills/repos
-ln -sf ~/projects/claude-config-loader/skills/cicd ~/.claude/skills/cicd
-ln -sf ~/projects/claude-config-loader/skills/project ~/.claude/skills/project
-ln -sf ~/projects/claude-config-loader/skills/environment ~/.claude/skills/environment
-ln -sf ~/projects/claude-config-loader/skills/remember ~/.claude/skills/remember
+# Remove old standalone .md files (replaced by skills)
+echo "Cleaning old standalone files..."
+rm -f "$CLAUDE_DIR/skills/core-development-rules.md"
+rm -f "$CLAUDE_DIR/skills/core-rules.md"
+rm -f "$CLAUDE_DIR/skills/testing-methodology.md"
+rm -f "$CLAUDE_DIR/skills/container-operations.md"
+rm -f "$CLAUDE_DIR/skills/stack-architecture.md"
+rm -f "$CLAUDE_DIR/skills/git-repositories.md"
+rm -f "$CLAUDE_DIR/skills/database-configuration.md"
+rm -f "$CLAUDE_DIR/skills/infrastructure-deployment.md"
+rm -f "$CLAUDE_DIR/skills/credential-access.md"
+rm -f "$CLAUDE_DIR/skills/save-infrastructure-info.md"
+rm -f "$CLAUDE_DIR/skills/git-workflow.md"
+rm -f "$CLAUDE_DIR/skills/current-project-context.md"
 
-echo "✅ Skills installed:"
-ls -la ~/.claude/skills/ | grep -E "ports|servers|databases|rules|repos|cicd|project|environment|remember"
+# Install ALL skills as symlinks
+echo "Installing skills..."
+
+# Always-loaded (via hook)
+ln -sf "$LOADER_DIR/skills/core-rules"               "$CLAUDE_DIR/skills/core-rules"
+
+# Generic infrastructure (on-demand, all projects)
+ln -sf "$LOADER_DIR/skills/cicd"                      "$CLAUDE_DIR/skills/cicd"
+ln -sf "$LOADER_DIR/skills/credentials"               "$CLAUDE_DIR/skills/credentials"
+ln -sf "$LOADER_DIR/skills/databases"                  "$CLAUDE_DIR/skills/databases"
+ln -sf "$LOADER_DIR/skills/environment"                "$CLAUDE_DIR/skills/environment"
+ln -sf "$LOADER_DIR/skills/guidelines"                 "$CLAUDE_DIR/skills/guidelines"
+ln -sf "$LOADER_DIR/skills/ports"                      "$CLAUDE_DIR/skills/ports"
+ln -sf "$LOADER_DIR/skills/project"                    "$CLAUDE_DIR/skills/project"
+ln -sf "$LOADER_DIR/skills/repos"                      "$CLAUDE_DIR/skills/repos"
+ln -sf "$LOADER_DIR/skills/save"                       "$CLAUDE_DIR/skills/save"
+ln -sf "$LOADER_DIR/skills/servers"                    "$CLAUDE_DIR/skills/servers"
+ln -sf "$LOADER_DIR/skills/testing"                    "$CLAUDE_DIR/skills/testing"
+
+# FlowMaster-specific (on-demand, flowmaster project only)
+ln -sf "$LOADER_DIR/skills/flowmaster-backend"         "$CLAUDE_DIR/skills/flowmaster-backend"
+ln -sf "$LOADER_DIR/skills/flowmaster-database"        "$CLAUDE_DIR/skills/flowmaster-database"
+ln -sf "$LOADER_DIR/skills/flowmaster-environment"     "$CLAUDE_DIR/skills/flowmaster-environment"
+ln -sf "$LOADER_DIR/skills/flowmaster-frontend"        "$CLAUDE_DIR/skills/flowmaster-frontend"
+ln -sf "$LOADER_DIR/skills/flowmaster-overview"        "$CLAUDE_DIR/skills/flowmaster-overview"
+ln -sf "$LOADER_DIR/skills/flowmaster-server"          "$CLAUDE_DIR/skills/flowmaster-server"
+ln -sf "$LOADER_DIR/skills/flowmaster-tools"           "$CLAUDE_DIR/skills/flowmaster-tools"
 
 # Install hook
-echo ""
-echo "🔗 Installing hook..."
-ln -sf ~/projects/claude-config-loader/hooks/load-context.sh ~/.claude/hooks/load-context.sh
-chmod +x ~/.claude/hooks/load-context.sh
+echo "Installing hook..."
+cp "$LOADER_DIR/config/hooks/auto-load-config.sh"      "$CLAUDE_DIR/hooks/auto-load-config.sh"
+chmod +x "$CLAUDE_DIR/hooks/auto-load-config.sh"
 
 # Configure settings.json
-echo ""
-echo "⚙️  Configuring settings..."
-
-SETTINGS_FILE=~/.claude/settings.json
-
-if [ -f "$SETTINGS_FILE" ]; then
-    # Backup existing settings
-    cp "$SETTINGS_FILE" "${SETTINGS_FILE}.backup"
-    echo "📋 Backed up existing settings to ${SETTINGS_FILE}.backup"
-
-    # Check if hooks already configured
-    if grep -q "user-prompt-submit" "$SETTINGS_FILE"; then
-        echo "⚠️  Hook already configured in settings.json"
-        echo "   Manual action: Verify hook path in $SETTINGS_FILE"
-    else
-        # Add hook to settings
-        # This is a simple approach - for complex JSON, use jq
-        echo "   Adding hook to settings..."
-        # Read current settings, add hooks
-        python3 -c "
-import json
-with open('$SETTINGS_FILE', 'r') as f:
-    settings = json.load(f)
-settings['hooks'] = {'user-prompt-submit': '~/.claude/hooks/load-context.sh'}
-with open('$SETTINGS_FILE', 'w') as f:
-    json.dump(settings, f, indent=2)
-" 2>/dev/null || {
-            echo "   ⚠️  Could not automatically add hook to settings"
-            echo "   Manual action: Add the following to ~/.claude/settings.json:"
-            echo '   "hooks": {'
-            echo '     "user-prompt-submit": "~/.claude/hooks/load-context.sh"'
-            echo '   }'
-        }
-    fi
-else
-    # Create new settings file
-    cat > "$SETTINGS_FILE" << 'EOF'
+echo "Configuring hooks..."
+cat > "$CLAUDE_DIR/settings.json" << 'EOF'
 {
-  "model": "sonnet",
   "hooks": {
-    "user-prompt-submit": "~/.claude/hooks/load-context.sh"
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/benjaminhippler/.claude/hooks/auto-load-config.sh"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/benjaminhippler/.claude/hooks/auto-load-config.sh"
+          }
+        ]
+      }
+    ]
   }
 }
 EOF
-    echo "✅ Created new settings.json with hook configured"
-fi
 
 echo ""
-echo "✨ Installation complete!"
+echo "Installation complete!"
 echo ""
-echo "📚 Next steps:"
-echo "   1. Customize config files in ~/projects/claude-config-loader/config/"
-echo "   2. Test: claude (then try /ports)"
-echo "   3. Read QUICKSTART.md for usage guide"
+echo "Skills installed:"
+ls -1 "$CLAUDE_DIR/skills/" | sed 's/^/  /'
 echo ""
-echo "Available skills:"
-echo "   /ports       - Port mappings"
-echo "   /servers     - Server information"
-echo "   /databases   - Database relationships"
-echo "   /rules       - Development rules"
-echo "   /repos       - Git repositories"
-echo "   /cicd        - CI/CD configuration"
-echo "   /project     - Current project info"
-echo "   /environment - Dev environment (OrbStack, ~/projects/)"
-echo "   /remember    - Save new information"
-echo ""
-echo "💡 Try: 'My GitLab repo is https://...' and Claude will offer to save it!"
-echo ""
+echo "Hook: SessionStart + UserPromptSubmit -> auto-load-config.sh"
+echo "Always loaded: core-rules"
+echo "On-demand: /ports /databases /repos /servers /cicd /project /credentials /save /guidelines /testing /environment"
+echo "FlowMaster: flowmaster-overview, flowmaster-backend, flowmaster-database, etc."

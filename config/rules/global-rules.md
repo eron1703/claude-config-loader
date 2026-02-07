@@ -2,6 +2,32 @@
 
 Development guidelines and best practices enforced across all projects.
 
+## Skill Scoping Rules
+
+**CRITICAL: Generic skills and project-specific skills are NOT the same.**
+
+### Generic Infrastructure Skills (apply to ALL projects)
+- ports, databases, servers, repos, cicd, credentials, environment, guidelines, save, project, supervisor, testing
+- These describe the local development environment, shared infrastructure, and general workflows
+- They apply regardless of which project you're working on
+
+### Project-Specific Skills (apply ONLY to their project)
+- `flowmaster-*` skills (backend, database, environment, frontend, overview, server, tools) apply ONLY when working on the FlowMaster project (`~/projects/flowmaster/`)
+- **Do NOT use FlowMaster skills** when working on other projects (resolver, commander, dxg, sdx, etc.)
+- **Do NOT confuse** FlowMaster-specific databases, ports, or environment variables with the generic infrastructure config
+
+### Override Rules
+- When working on FlowMaster, project-specific skills **override** generic skills where they conflict
+- Example: `flowmaster-database` overrides generic `databases` for FlowMaster-specific schema details
+- Example: `flowmaster-environment` overrides generic `environment` for FlowMaster-specific env vars
+- Generic skills still apply for shared infrastructure (Docker rules, git workflow, security)
+
+### How to Determine Which Skills Apply
+1. Check the current working directory or project context
+2. If in `~/projects/flowmaster/` → load flowmaster-* skills + generic skills
+3. If in any other project → load ONLY generic skills
+4. Never mix project-specific details from one project into another
+
 ## 1. Security Rules
 
 ### Credentials Management
