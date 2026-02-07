@@ -123,6 +123,63 @@ project_databases:
         purpose: "Session management"
     notes: "Connects to demo server ArangoDB, uses DXG API for generation"
 
+  sdx_mcp_server:
+    location: "demo-server (65.21.153.235)"
+    local_path: ~/projects/plane-mcp-server
+    primary_database:
+      type: arangodb
+      container: arangodb-main
+      host: 65.21.153.235
+      port: 8529
+      database: sdx
+      collections: 17
+      key_collections:
+        - "configs: System configuration"
+        - "metadata: Schema and table metadata"
+        - "secrets: Encrypted credentials"
+        - "jobs: Background job tracking"
+        - "audit_logs: Security audit trail"
+        - "ingestion_runs: Data ingestion history"
+        - "data_quality: Quality metrics"
+        - "webhooks: Webhook configurations"
+      credentials: "See GitLab CI/CD variables or /opt/sdx/backend/.env"
+    supported_sources:
+      implemented:
+        - type: postgresql
+          library: asyncpg
+          status: "Fully implemented"
+      configured_not_implemented:
+        - type: mysql
+          library: aiomysql
+          status: "Library installed, not implemented"
+        - type: oracle
+          library: cx_Oracle
+          status: "Library installed, not implemented"
+        - type: sqlserver
+          library: aioodbc
+          status: "Library installed, not implemented"
+        - type: mongodb
+          library: motor
+          status: "Library installed, not implemented"
+    external_apis:
+      - name: "OpenAI API"
+        endpoint: "https://api.openai.com/v1/embeddings"
+        model: "text-embedding-3-small"
+        dimensions: 1536
+        purpose: "Semantic embeddings for field matching"
+        credentials: "Environment variable: OPENAI_API_KEY"
+      - name: "OpenRouter API"
+        endpoint: "https://openrouter.ai/api/v1/chat/completions"
+        purpose: "LLM-based annotation generation"
+        credentials: "Environment variable: OPENROUTER_API_KEY"
+    notes: |
+      - SDX MCP Server running on demo-server port 8011
+      - Shares ArangoDB instance with engage project (different databases)
+      - PostgreSQL is primary data source for ingestion
+      - AI services (OpenAI, OpenRouter) are optional
+      - Webhook delivery with HMAC-SHA256 authentication
+      - Comprehensive documentation in ~/projects/plane-mcp-server/
+
   sdx:
     local_path: ~/projects/sdx
     databases:

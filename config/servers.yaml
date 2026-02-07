@@ -37,9 +37,31 @@ servers:
     ip: 65.21.153.235
     purpose: "Demo/staging server for testing and demos"
     access: "SSH (see connection details below)"
-    platform: "Linux"
+    platform: "Linux (K3S Kubernetes)"
+    credentials: "See GitLab CI/CD Variables: SSH_PRIVATE_KEY, DEMO_SERVER"
+    infrastructure:
+      kubernetes: "K3S (lightweight Kubernetes) with 60+ pods across 8 namespaces"
+      containers: "13 active Docker containers"
+      reverse_proxy: "Nginx on port 80"
+      monitoring: "Grafana, Prometheus, Loki stack"
+      ci_cd: "GitLab Runner, Jenkins"
     services:
-      - arangodb:8529 (used by engage project)
+      - "arangodb-main:8529 (used by engage project and SDX)"
+      - "sdx-mcp-server:8011 (Plane MCP Server - 40 tools)"
+      - "sdx-backend:8010"
+      - "sdx-frontend:3010"
+      - "flowmaster-backend:8000"
+      - "flowmaster-frontend:3000"
+      - "guard-mobile-backend:8004"
+      - "employee-backend:8001"
+      - "employee-frontend:3001"
+    open_ports:
+      - "80 (Nginx reverse proxy)"
+      - "8000 (Flowmaster Backend)"
+      - "8004 (Guard Mobile Backend)"
+      - "8010 (SDX Backend)"
+      - "8011 (SDX MCP Server)"
+      - "8529 (ArangoDB)"
     connection:
       user_ben:
         host: demo-server
@@ -55,12 +77,68 @@ servers:
         port: 22
         identity_file: ~/.ssh/id_ed25519_demo
         connect: "ssh demo-server-root"
+      ci_cd_deploy:
+        hostname: 65.21.153.235
+        user: root
+        port: 22
+        key_type: ED25519
+        identity: "gitlab-ci-deploy"
+        credentials: "GitLab CI/CD: SSH_PRIVATE_KEY"
+    mcp_server:
+      name: "SDX MCP Server"
+      container: "sdx-mcp-server"
+      port: 8011
+      status: "Running (up 7+ days)"
+      health_endpoint: "http://localhost:8011/health"
+      tools_loaded: 40
+      pillars:
+        - "Admin (11 tools)"
+        - "Ingest (10 tools)"
+        - "Discovery (9 tools)"
+        - "Data Router (10 tools)"
+      connections:
+        primary_database:
+          type: "ArangoDB"
+          container: "arangodb-main"
+          port: 8529
+          database: "sdx"
+          collections: 17
+          credentials: "See GitLab CI/CD or /opt/sdx/backend/.env"
+        ai_services:
+          - "OpenAI API (embeddings: text-embedding-3-small)"
+          - "OpenRouter API (LLM annotations)"
+        data_sources:
+          - "PostgreSQL (primary, fully implemented)"
+          - "MySQL (configured, not implemented)"
+          - "Oracle (configured, not implemented)"
+          - "SQL Server (configured, not implemented)"
+          - "MongoDB (configured, not implemented)"
+        webhooks:
+          method: "HTTP POST"
+          authentication: "HMAC-SHA256"
+          retry_policy: "3 retries with exponential backoff"
+      documentation:
+        location: "~/projects/plane-mcp-server/"
+        files:
+          - "README_INVESTIGATION.md"
+          - "INVESTIGATION_SUMMARY.md"
+          - "CONNECTIONS_QUICK_REFERENCE.md"
+          - "SDX_MCP_SERVER_INVESTIGATION.md"
+          - "ARCHITECTURE_DIAGRAM.md"
+    plane_status:
+      main_app: "NOT DEPLOYED"
+      mcp_server: "NOT RUNNING"
+      note: "Plane (project management tool) not deployed on this server"
     notes: |
       - Configured in ~/.ssh/config with two access methods
       - ben user: ssh demo-server (key: ~/.ssh/ben_demo)
       - root user: ssh demo-server-root (key: ~/.ssh/id_ed25519_demo)
+      - CI/CD deploy key in GitLab (gitlab-ci-deploy)
       - engage project connects to ArangoDB on this server
+      - SDX MCP Server connects to same ArangoDB instance (sdx database)
+      - Full K3S Kubernetes cluster with monitoring stack
       - Used for demos and staging deployments
+      - Comprehensive documentation saved to ~/projects/plane-mcp-server/
 
 # Cloud Resources
 cloud:
