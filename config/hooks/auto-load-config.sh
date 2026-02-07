@@ -39,8 +39,13 @@ echo ""
 echo "---"
 echo ""
 
-# Load core-rules skill (the ONLY always-loaded skill)
-SKILL_FILE=~/.claude/skills/core-rules/SKILL.md
-if [ -f "$SKILL_FILE" ]; then
-    cat "$SKILL_FILE"
-fi
+# Load always-on skills
+for SKILL_NAME in core-rules supervisor-methodology; do
+    SKILL_FILE=~/.claude/skills/$SKILL_NAME/SKILL.md
+    if [ -f "$SKILL_FILE" ]; then
+        cat "$SKILL_FILE"
+    fi
+done
+
+echo ""
+echo "**ENFORCEMENT: Supervisor methodology + granular component planning ACTIVE. Confirm compliance in every response.**"
