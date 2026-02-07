@@ -78,6 +78,17 @@ sdx:
   repo: ~/projects/sdx
   notes: "Uses external ArangoDB from flowmaster and resolver projects"
 
+plane:
+  plane-proxy: 8083
+  plane-mcp-server: 8012
+  plane-db: 5432 (internal only)
+  plane-redis: 6379 (internal only)
+  plane-mq: 5672 (internal only)
+  plane-minio: 9000 (internal only)
+  description: "Plane CE v1.2.1 project management on demo server"
+  repo: /opt/plane/ (on demo server)
+  notes: "Deployed on demo server (65.21.153.235). Internal services not exposed to host."
+
 claude-config-loader:
   description: "Claude Code configuration management"
   repo: ~/projects/claude-config-loader
@@ -219,6 +230,8 @@ guidelines:
 
 # === QUICK REFERENCE BY PORT ===
 
+  "8012": "plane (MCP server, demo server only)"
+  "8083": "plane (web UI proxy, demo server only)"
 by_port:
   "3000": "commander (backend), flowmaster (frontend), documentation (frontend)"
   "3001": "resolver (frontend), flowmaster (mcp-postgres)"
@@ -275,6 +288,8 @@ by_port:
 
 demo_server_65_21_153_235:
   arangodb: 8529
+  plane-proxy: 8083
+  plane-mcp-server: 8012
   used_by:
     - "engage project (collaboration service)"
   access: "Remote connection from local containers"

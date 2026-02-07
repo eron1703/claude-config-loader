@@ -52,6 +52,11 @@ glab variable get BASTION_PASSWORD --group flow-master
 # API tokens
 glab variable get EXTERNAL_API_TOKEN --group flow-master
 glab variable get SLACK_WEBHOOK_URL --group flow-master
+
+# Hetzner Cloud
+glab variable get HETZNER_API_TOKEN --group flow-master
+
+**Note:** Hetzner token is used for managing the demo server firewall at 65.21.153.235.
 ```
 
 ## Where are credentials stored?

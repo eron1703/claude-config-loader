@@ -55,6 +55,8 @@ servers:
       - "guard-mobile-backend:8004"
       - "employee-backend:8001"
       - "employee-frontend:3001"
+      - "plane-web:8083 (Plane Frontend Web UI)"
+      - "plane-api:8012 (Plane MCP Server)"
     open_ports:
       - "80 (Nginx reverse proxy)"
       - "8000 (Flowmaster Backend)"
@@ -62,6 +64,17 @@ servers:
       - "8010 (SDX Backend)"
       - "8011 (SDX MCP Server)"
       - "8529 (ArangoDB)"
+      - "8012 (Plane MCP Server)"
+      - "8083 (Plane Web UI)"
+    hetzner_firewall:
+      enabled: true
+      note: "Server uses Hetzner Cloud Firewall for network security"
+      external_access: "Ports must be opened in Hetzner Cloud Firewall for external access"
+      management: "Configure via Hetzner Cloud Console or API"
+      current_rules:
+        - "Port 80 (HTTP) - Open"
+        - "Port 22 (SSH) - Open"
+        - "Port 8000-8083 (Application ports) - Configure as needed"
     connection:
       user_ben:
         host: demo-server
@@ -126,9 +139,45 @@ servers:
           - "SDX_MCP_SERVER_INVESTIGATION.md"
           - "ARCHITECTURE_DIAGRAM.md"
     plane_status:
-      main_app: "NOT DEPLOYED"
-      mcp_server: "NOT RUNNING"
-      note: "Plane (project management tool) not deployed on this server"
+      main_app: "DEPLOYED"
+      version: "Plane CE v1.2.1"
+      deployment_path: "/opt/plane/"
+      deployment_method: "Docker Compose"
+      web_ui:
+        url: "http://65.21.153.235:8083"
+        port: 8083
+      mcp_server:
+        status: "RUNNING"
+        url: "http://65.21.153.235:8012"
+        port: 8012
+        deployment_path: "/opt/plane-mcp-server/"
+      containers:
+        count: 13
+        services:
+          - "plane-web (Frontend Web UI)"
+          - "plane-admin (Admin Panel)"
+          - "plane-space (Public Space)"
+          - "plane-api (Backend API)"
+          - "plane-worker (Background Worker)"
+          - "plane-beat-worker (Celery Beat Scheduler)"
+          - "plane-live (Real-time Service)"
+          - "plane-proxy (Nginx Reverse Proxy)"
+          - "plane-db (PostgreSQL Database)"
+          - "plane-redis (Redis Cache)"
+          - "plane-mq (RabbitMQ Message Queue)"
+          - "plane-minio (MinIO Object Storage)"
+          - "plane-mcp-server (MCP Integration)"
+      admin_user: "admin@flowmaster.dev"
+      workspace:
+        name: "flowmaster"
+        project: "FM (FlowMaster)"
+      api_key: "plane_api_f4184086bfe845f2849b6eebb6be052d"
+      users:
+        - "admin@flowmaster.dev"
+        - "benjamin@flowmaster.dev"
+        - "irtiza.s2918@gmail.com"
+        - "muhammadsadiqrajani@gmail.com"
+        - "ar.raza5092@gmail.com"
     notes: |
       - Configured in ~/.ssh/config with two access methods
       - ben user: ssh demo-server (key: ~/.ssh/ben_demo)
