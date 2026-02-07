@@ -148,15 +148,16 @@ repositories:
     notes: "Skills-based progressive disclosure config system for Claude Code. Synced to both GitHub and GitLab."
 
   test-rig:
-    type: local only
-    url: https://github.com/HCB-Consulting-ME/test-rig
+    type: both
+    github_url: https://github.com/eron1703/test-rig
+    gitlab_url: https://gitlab.com/flow-master/test-rig
     description: "Multi-agent testing infrastructure for monoliths and microservices"
     local_path: ~/projects/test-rig
     primary_branch: main
     status: active
     containers: none
     tests: yes
-    notes: "Standalone CLI tool for test generation and parallel execution. Integrates with claude-config-loader via /testing skill"
+    notes: "Standalone CLI tool for test generation and parallel execution. Synced to both GitHub and GitLab. 29/29 tests passing."
 
   # === ARCHIVED / DOCUMENTATION ===
 
