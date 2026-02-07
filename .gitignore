@@ -23,7 +23,8 @@ Thumbs.db
 *.bak
 *_SUMMARY.md
 *_STATUS.md
-test-*
+# Temporary test files (but not skills/test-rig/)
+/test-*
 
 # Screenshots and images (unless in docs/)
 /*.png

@@ -60,6 +60,7 @@ Show agent status (count, activities, model, tokens) when using agents.
 | Project context needed | /project | Current project detection (dynamic) |
 | Credentials, API keys | /credentials | GitLab CI/CD variable access |
 | User provides new infra info | /save | Persist to config YAML files |
+| Test-rig development | /test-rig | Architecture, source structure, dev workflow (only in ~/projects/test-rig/) |
 | FlowMaster work | /flowmaster-* | 7 project-specific skills (only in ~/projects/flowmaster/) |
 
 **FlowMaster skills** override generic skills where they conflict. Generic skills still apply for shared infrastructure.

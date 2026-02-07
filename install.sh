@@ -50,6 +50,9 @@ ln -sf "$LOADER_DIR/skills/save"                       "$CLAUDE_DIR/skills/save"
 ln -sf "$LOADER_DIR/skills/servers"                    "$CLAUDE_DIR/skills/servers"
 ln -sf "$LOADER_DIR/skills/testing"                    "$CLAUDE_DIR/skills/testing"
 
+# Test-Rig-specific (on-demand, test-rig project only)
+ln -sf "$LOADER_DIR/skills/test-rig"                    "$CLAUDE_DIR/skills/test-rig"
+
 # FlowMaster-specific (on-demand, flowmaster project only)
 ln -sf "$LOADER_DIR/skills/flowmaster-backend"         "$CLAUDE_DIR/skills/flowmaster-backend"
 ln -sf "$LOADER_DIR/skills/flowmaster-database"        "$CLAUDE_DIR/skills/flowmaster-database"
@@ -102,4 +105,5 @@ echo ""
 echo "Hook: SessionStart + UserPromptSubmit -> auto-load-config.sh"
 echo "Always loaded: core-rules"
 echo "On-demand: /ports /databases /repos /servers /cicd /project /credentials /save /guidelines /testing /environment"
+echo "Test-Rig: test-rig (project development context)"
 echo "FlowMaster: flowmaster-overview, flowmaster-backend, flowmaster-database, etc."
