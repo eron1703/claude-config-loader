@@ -26,9 +26,9 @@ disable-model-invocation: false
 
 ## Demo Server (65.21.153.235) — PRIMARY
 
-### 3 Active Environments
+### 1 FlowMaster Environment (no separate dev/test/staging on this server)
 
-#### Environment 1: K3S FlowMaster Cluster
+#### K3S FlowMaster Cluster
 - **Namespace:** `flowmaster`
 - **Pods:** 29 running / 30 deployments (data-intelligence scaled to 0)
 - **Local Registry:** `localhost:30500` (K3S NodePort)
@@ -70,21 +70,25 @@ disable-model-invocation: false
 
 **ExternalName services:** arangodb, postgres, redis (pointing to `databases` namespace)
 
-#### Environment 2: Plane CE (Project Management)
+#### SDX Platform (Part of FlowMaster, currently standalone Docker)
+- **Location:** `/opt/sdx/`
+- **Containers:** 3 (backend:8010, frontend:3010, mcp-server:8011)
+- **Uptime:** 8+ days
+- **Note:** Should be migrated into K3S cluster — currently runs as separate Docker containers but is part of the FlowMaster product
+
+#### Shared Infrastructure
+- **ArangoDB:** 1 container, port 8529, up 3 months (shared by FlowMaster + SDX)
+- **Nginx:** Reverse proxy on port 80 to K3S ClusterIPs
+
+---
+
+### Plane CE (Separate — Project Management Tool, NOT part of product)
 - **Location:** `/opt/plane/`
 - **Containers:** 13 (proxy, web, admin, space, live, api, worker, beat-worker, db, redis, mq, minio, mcp-server)
 - **Web UI:** http://65.21.153.235:8083 (UP)
 - **MCP Server:** http://65.21.153.235:8012
 - **Note:** plane-space container is UNHEALTHY
 
-#### Environment 3: SDX Platform
-- **Location:** `/opt/sdx/`
-- **Containers:** 3 (backend:8010, frontend:3010, mcp-server:8011)
-- **Uptime:** 8+ days
-
-### Shared Infrastructure
-- **ArangoDB:** 1 container, port 8529, up 3 months
-- **Nginx:** Reverse proxy on port 80 to K3S ClusterIPs
 
 ---
 

@@ -25,9 +25,11 @@ Code was deployed via manual docker save/scp pipeline, NOT via GitLab CI/CD. Cod
 
 ---
 
-## Demo Server — 3 Active Environments
+## Demo Server — 1 FlowMaster Environment
 
-### Environment 1: K3S FlowMaster Cluster
+There is ONE FlowMaster environment on the demo server (no separate dev/test/staging). SDX is part of FlowMaster (currently deployed as standalone Docker containers, should be migrated to K3S).
+
+### K3S FlowMaster Cluster
 - **Namespace:** `flowmaster`
 - **Pods:** 29 running / 30 deployments (data-intelligence at 0 replicas)
 - **Registry:** `localhost:30500` (K3S NodePort)
@@ -65,18 +67,22 @@ Code was deployed via manual docker save/scp pipeline, NOT via GitLab CI/CD. Cod
 | service-registry | ghcr.io latest | 8001 | 58Mi | NOT TESTED |
 | websocket-gateway | 8ef0412c | 9010 | 38Mi | NOT TESTED |
 
-### Environment 2: Plane CE (Project Management)
+### SDX Platform (Part of FlowMaster — currently standalone Docker)
+- **Containers:** 3 (backend:8010, frontend:3010, mcp-server:8011)
+- **Uptime:** 8+ days
+- **Note:** Should be migrated into K3S cluster
+
+### Shared Infrastructure
+- **ArangoDB:** 1 container, port 8529, running 3 months (shared by FlowMaster + SDX)
+- **Nginx:** Reverse proxy on port 80
+
+---
+
+## Plane CE (Separate Project Management Tool — NOT part of product)
 - **Containers:** 13 (proxy, web, admin, space, live, api, worker, beat-worker, db, redis, mq, minio, mcp-server)
 - **Web UI:** http://65.21.153.235:8083 (UP)
 - **Note:** plane-space container is UNHEALTHY
 
-### Environment 3: SDX Platform
-- **Containers:** 3 (backend:8010, frontend:3010, mcp-server:8011)
-- **Uptime:** 8+ days
-
-### Shared Infrastructure
-- **ArangoDB:** 1 container, port 8529, running 3 months
-- **Nginx:** Reverse proxy on port 80
 
 ---
 

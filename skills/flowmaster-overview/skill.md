@@ -147,10 +147,12 @@ WARNING: ClusterIPs are hardcoded in nginx config, will change if services recre
 
 | Server | IP | URL | Status (Feb 8) |
 |--------|-----|-----|----------------|
-| **Demo** | 65.21.153.235 | — | UP, K3S, 29 pods |
+| **Demo** | 65.21.153.235 | — | UP, K3S, 29 pods + SDX (Docker) |
 | **Production** | 91.99.237.14 | app.flow-master.ai | UP (HTTP 200), Docker Compose |
 | **Staging** | 91.98.159.56 | staging.flow-master.ai | DOWN (unreachable) |
 | **Dev** | 91.98.159.56 | dev.flow-master.ai | DOWN (unreachable) |
+
+**Note:** Demo server has ONE FlowMaster environment (not separate dev/test/staging). SDX is part of FlowMaster (currently standalone Docker, should be in K3S). Plane CE is a separate project management tool, not part of the product.
 
 ---
 
