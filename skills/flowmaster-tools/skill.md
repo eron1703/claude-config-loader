@@ -8,13 +8,13 @@ disable-model-invocation: false
 
 ## Overview
 
-FlowMaster exposes a comprehensive MCP tool registry with 50+ tools organized across 4 pillars. Tools manage connections, data ingestion, discovery, and routing operations with support for multiple database backends and LLM providers.
+FlowMaster exposes a comprehensive tool registry with 50+ tools organized across 4 pillars, spanning two integrated systems: **SDX** (data management and discovery) and **DXG** (dynamic UI generation and task intelligence). SDX exposes REST endpoints for connections, data ingestion, discovery, and routing operations. External MCP access to these tools is unified through the **FlowMaster MCP Server** (port 9000), which proxies requests to SDX, Execution Engine, Human Task, Knowledge Hub, DXG, and Process Analytics services. Tools manage connections, data ingestion, discovery, routing operations, UI generation, and task analysis with support for multiple database backends and LLM providers.
 
 ## Available Tools by Pillar
 
-### 1. Admin Pillar (`sdx://admin/*`)
+### 1. Admin Pillar (`flowmaster://admin/*`)
 
-Connection and configuration management tools:
+Connection and configuration management tools. SDX REST endpoints (`POST /admin/*`) are accessed externally through FlowMaster MCP Server (port 9000):
 
 - **Connection Management**
   - `create_connection` - Create new database connection
@@ -34,9 +34,9 @@ Connection and configuration management tools:
   - `set_default_llm` - Set primary LLM provider
   - `delete_llm_config` - Remove LLM configuration
 
-### 2. Ingest Pillar (`sdx://ingest/*`)
+### 2. Ingest Pillar (`flowmaster://ingest/*`)
 
-Data ingestion and annotation tools:
+Data ingestion and annotation tools. SDX REST endpoints (`POST /ingest/*`) are accessed externally through FlowMaster MCP Server:
 
 - **Ingestion Operations**
   - `start_ingestion` - Begin async data ingestion job
@@ -57,9 +57,9 @@ Data ingestion and annotation tools:
   - `configure_sync_pattern` - Set sync schedule
   - `set_write_protection` - Enable/disable write protection
 
-### 3. Discovery Pillar (`sdx://discover/*`)
+### 3. Discovery Pillar (`flowmaster://discover/*`)
 
-Metadata exploration and relationship mapping:
+Metadata exploration and relationship mapping. SDX REST endpoints (`GET /discover/*`) are accessed externally through FlowMaster MCP Server:
 
 - **Data Source Discovery**
   - `discover_datasources` - List available data sources
@@ -77,14 +77,42 @@ Metadata exploration and relationship mapping:
   - `find_foreign_keys` - Identify FK relationships
   - `map_relationships` - Create relationship definitions
 
-### 4. Data Router Pillar (`sdx://data/*`)
+### 4. Data Router Pillar (`flowmaster://data/*`)
 
-Data querying and retrieval (in development):
+Data querying and retrieval (in development). SDX REST endpoints (`POST /data/*`) are accessed externally through FlowMaster MCP Server:
 
 - **Data Querying**
   - `query_data` - Execute data queries (NOT YET IMPLEMENTED)
   - `get_sample_data` - Retrieve sample rows (default 20)
   - `validate_data` - Data validation operations
+
+### 5. DXG API Pillar (`flowmaster://dxg/*`)
+
+Dynamic UI generation and task intelligence tools. DXG REST endpoints are accessed externally through FlowMaster MCP Server:
+
+- **Context Analysis**
+  - `analyze_task` (`GET /api/v1/analyze/{task_id}`) - Unified context analysis: walks ArangoDB graph, computes prefill deterministically, single LLM call for domain analysis, metrics, flags, field recommendations
+  - Returns: domain, summary, keyMetrics, codeResolutions, fieldAnalysis, flags, referenceData, caseHistory, sufficiency
+
+- **UI Generation**
+  - `generate_ui` (`POST /api/v1/generate`) - Generate HTML UI from natural language prompt
+  - `smart_form` (`GET /api/v1/smart-form/{task_id}`) - Pre-filled form with intelligent defaults from prior steps
+  - Returns: html (Tailwind CSS), inputDataStructure, outputDataStructure, metadata
+
+- **Interactive Intelligence**
+  - `query_task` (`POST /api/v1/query/{task_id}`) - Q&A about task context with source citations
+  - `briefing` (`GET /api/v1/briefing/{task_id}`) - Case summary and sufficiency evaluation
+
+**DXG Prefill Priority:**
+1. Prior node data (exact field match)
+2. Input data definitions
+3. Cross-referenced data
+4. Process contextRef
+5. Boolean defaults (if all prior steps completed)
+
+**DXG Context Budget:** 6000 characters assembled from task info, field definitions, prior step data, cross-references, case history (priority-ordered)
+
+**LLM:** OpenAI GPT-4, temperature 0.3, structured JSON output
 
 ## Supported Database Backends
 
@@ -193,16 +221,107 @@ Tools support multiple LLM backends for annotation generation and field resoluti
 ```
 Client/Claude
     ↓
-POST /rpc (JSON-RPC 2.0)
+[FlowMaster MCP Server] (Port 9000)
+JSON-RPC 2.0 over HTTP
+Auth: API key + OAuth 2.0 with tenant isolation
     ↓
-[MCP Server Request Routing]
-├── Admin Tools → ArangoDB (connections, secrets, llm_configs)
-├── Ingest Tools → User Databases (PostgreSQL, etc.)
-│                → ArangoDB (schemas, tables, columns)
-├── Discovery Tools → ArangoDB (metadata search)
-└── Data Router Tools → User Databases (queries)
-                     → OpenAI (embeddings)
-                     → OpenRouter (LLM)
+    ├── Admin (flowmaster://admin/*) → SDX REST API (/admin/*) → ArangoDB
+    │                                                           → Secrets Store
+    │
+    ├── Ingest (flowmaster://ingest/*) → SDX REST API (/ingest/*) → User Databases
+    │                                                               → ArangoDB
+    │
+    ├── Discovery (flowmaster://discover/*) → SDX REST API (/discover/*) → ArangoDB
+    │
+    ├── Data Router (flowmaster://data/*) → SDX REST API (/data/*) → User Databases
+    │                                                               → OpenAI (embeddings)
+    │                                                               → OpenRouter (LLM)
+    │
+    ├── Execution Engine → Process execution & state management
+    │
+    ├── Human Task → Task context and assignment
+    │
+    ├── Knowledge Hub → Knowledge graph queries
+    │
+    ├── DXG (flowmaster://dxg/*) → DXG REST API (/api/v1/*) → ArangoDB (graph walk)
+    │                                                       → OpenAI GPT-4
+    │
+    └── Process Analytics → Analytics and metrics
+```
+
+## FlowMaster MCP Server
+
+The **FlowMaster MCP Server** is the unified gateway for external MCP access to all FlowMaster services.
+
+### Configuration
+- **Port**: 9000
+- **Protocol**: JSON-RPC 2.0 over HTTP
+- **Endpoint**: `POST /rpc`
+- **Authentication**: API key + OAuth 2.0
+- **Tenant Isolation**: All requests scoped to tenant context
+
+### Unified MCP Gateway Features
+- Single entry point for all FlowMaster tools
+- Automatic request routing to backend services
+- Consistent authentication and authorization
+- Tenant isolation and context management
+- JSON-RPC 2.0 protocol compliance
+- Error handling and request validation
+
+### Backend Service Proxying
+The MCP Server proxies to the following services:
+
+1. **SDX** (REST API)
+   - Admin tools: `/admin/*` endpoints
+   - Ingest tools: `/ingest/*` endpoints
+   - Discovery tools: `/discover/*` endpoints
+   - Data Router tools: `/data/*` endpoints
+
+2. **DXG** (REST API)
+   - Dynamic UI generation: `/api/v1/generate`
+   - Task analysis: `/api/v1/analyze/{task_id}`
+   - Smart forms: `/api/v1/smart-form/{task_id}`
+   - Task queries: `/api/v1/query/{task_id}`
+   - Task briefings: `/api/v1/briefing/{task_id}`
+
+3. **Execution Engine**
+   - Process execution
+   - State management
+   - Variable resolution
+
+4. **Human Task Service**
+   - Task context retrieval
+   - Task assignment
+
+5. **Knowledge Hub**
+   - Knowledge graph queries
+   - Context retrieval
+
+6. **Process Analytics**
+   - Metrics and reporting
+   - Process insights
+
+### Request/Response Format
+```json
+{
+  "jsonrpc": "2.0",
+  "method": "flowmaster://admin/create_connection",
+  "params": {
+    "tenant_id": "tenant_123",
+    "connection_name": "my_db",
+    "db_type": "postgresql",
+    "host": "localhost",
+    "port": 5432,
+    "database": "mydb"
+  },
+  "id": 1
+}
+```
+
+### Authentication Headers
+```
+Authorization: Bearer tenant:<tenant_id>:token:<api_key>
+X-OAuth-Token: <oauth_token>  (optional)
 ```
 
 ### Storage Collections
@@ -233,15 +352,17 @@ POST /rpc (JSON-RPC 2.0)
 
 ## Security & Tenant Isolation
 
-### Authentication
+### MCP Server Authentication
 - Authorization header parsing: `Bearer tenant:<tenant_id>:token:<token_value>`
-- Required for all /rpc requests
+- Required for all POST /rpc requests to FlowMaster MCP Server
+- OAuth 2.0 token support via X-OAuth-Token header
 - Error code: TENANT_ERROR if missing
 
 ### Tenant Context
-- All queries filtered by tenant_id
-- Cross-tenant data access prevented
+- All queries filtered by tenant_id via MCP Server
+- Cross-tenant data access prevented at gateway layer
 - Credential isolation per tenant
+- Token validation before backend service proxying
 
 ## When to Use These Tools
 
@@ -268,6 +389,13 @@ POST /rpc (JSON-RPC 2.0)
 - Executing data queries
 - Testing data quality
 - Validating field values
+
+### Use DXG API Tools When:
+- Analyzing task context and requirements
+- Generating dynamic UI forms
+- Pre-filling forms with intelligent defaults
+- Querying task-specific data and relationships
+- Retrieving case summaries and briefings
 
 ## Performance Notes
 
@@ -300,3 +428,6 @@ POST /rpc (JSON-RPC 2.0)
 5. **Set appropriate timeouts** based on data volume
 6. **Use sample data retrieval** before full ingestion
 7. **Configure LLM defaults** for annotation generation
+8. **Leverage DXG context budget** by prioritizing recent and high-confidence data
+9. **Use analyze_task** as the first step when working with process tasks
+10. **Validate field recommendations** from analyze_task before generating UI

@@ -8,18 +8,36 @@ disable-model-invocation: true
 
 ## Core Principles
 
-### 1. Delegation, Not Direct Execution
-- Execute tasks as a supervisor agent
-- You are not allowed to perform any work yourself
-- All work must be done through launching and managing agents
-- Think at the system level, not component level
+### 1. Delegation for Throughput
+**The goal is THROUGHPUT, not bureaucracy.**
+
+Delegate when it enables parallelism or when work exceeds ~2 minutes of execution time.
+
+**Direct execution is fine for:**
+- Quick config edits (changing a YAML value, updating environment vars)
+- Memory updates (writing to MEMORY.md, updating task lists)
+- Reading files to make decisions (checking current state, reviewing code)
+- Single-command server checks (SSH health checks, container status)
+- Simple file operations that inform your next delegation
+
+**The test:** "Would delegating this make things faster?"
+- If yes -> delegate
+- If no -> just do it
+
+**When to delegate:**
+- Building features (anything touching application code)
+- Running tests (integration, E2E, load testing)
+- Complex multi-step deployments
+- Debugging issues that require iteration
+- Any work that can run in parallel with other work
 
 ### 2. Autonomous Operation
 - Act on the user's behalf with proactive decision-making
 - The user prefers to see things moving quickly with cheap agents
 - Do not stop or interrupt unnecessarily
-- Do not ask the user questions during execution
 - Do not disturb the user with popups or foreground testing
+
+**Exception:** Architecture decisions and scope changes still need user approval. For everything else, make the call and move.
 
 ### 3. Granular Component-Level Planning (MANDATORY)
 - Do NOT plan execution in phases
@@ -36,27 +54,84 @@ disable-model-invocation: true
 
 ---
 
+## Component Baseline & Gap Analysis Methodology
+
+### Purpose
+Before building or fixing anything, establish a complete component-level view of what exists vs. what's needed. This prevents phase-based thinking and ensures parallel work is correctly scoped.
+
+### Step 1: Component Inventory
+For each microservice/component, audit from source (repos, deployed instances):
+- **Stack**: framework, language, runtime
+- **Capabilities**: what it actually does today (not what docs claim)
+- **APIs**: real endpoints that exist and respond
+- **Data**: collections/tables it reads/writes
+- **Dependencies**: services it calls, services that call it
+- **Infra**: Dockerfile, CI/CD, tests, env config
+- **Status**: `working` | `partial` | `scaffold` | `missing`
+
+### Step 2: Target State Definition
+For each component, extract from specs/docs/architecture:
+- **Required capabilities**: full list of what it must do
+- **Required APIs**: endpoints that must exist
+- **Required integrations**: other services, external systems
+- **Required data model**: collections, schemas, relationships
+
+### Step 3: Gap Matrix
+Per component, compare current vs target:
+```
+## {component-name}
+Current: {status} | Target: {required capabilities count}
+HAVE: {list of working capabilities}
+PARTIAL: {list of incomplete capabilities}
+MISSING: {list of capabilities not started}
+NEW: {capabilities not in any spec yet but needed}
+BLOCKED: {capabilities blocked by other components}
+```
+
+### Step 4: Component Specs for Parallel Execution
+Each identified gap becomes a spec suitable for an agent:
+- **Input**: what the agent receives (context, files, contracts)
+- **Output**: what the agent must produce (code, tests, config)
+- **Acceptance**: how to verify the work is done (not "it compiles" - real proof)
+- **Dependencies**: what must exist before this work starts
+
+### Rules
+- Never plan by phases (Phase 1, Phase 2...) - plan by component
+- Every component can be worked on in parallel unless explicitly blocked
+- Specs must be detailed enough for a Haiku agent to execute independently
+- Include test cases in every spec
+- No capability is "done" without proof it works end-to-end
+
+---
+
 ## Agent Management
 
 ### Launch Strategy
-- Aim for 10 agents or more if you can give them useful tasks
-- When one agent completes, launch additional new agents
-- Launch more agents if you reasonably can
+- **Match agent count to available independent work**
+- If you have 15 independent tasks ready, launch 15 agents
+- If you have 3 tasks, launch 3 agents — don't invent fake work
+- When one agent completes, launch additional new agents if work exists
 - If agents get stuck, launch helper agents to unstick them or re-task them
+
+### Model Selection
+- **Haiku** for straightforward implementation tasks (coding, config, deployments)
+- **Sonnet** for complex reasoning (debugging, architecture analysis, multi-service integration)
+- **Opus** for architecture (system design, technical decisions, complex planning)
+
+### Task Definition Quality
+Each agent must have a clear, self-contained task description. If you can't write it in 3 sentences, the task isn't well-defined enough.
+
+Good: "Add rate limiting middleware to API Gateway. Use Redis-backed token bucket (100 req/min per IP). Add unit tests and update OpenAPI spec."
+
+Bad: "Fix the API Gateway and make it better with proper error handling and security stuff."
 
 ### Monitoring and Tracking
 - Give updates on how many agents are running at any time
 - Show what each agent is working on
 - Update their current activities regularly
 - Display what model they use and token consumption
-- Stay responsive - don't go to sleep
+- Stay responsive — don't go to sleep
 - React to user inputs, changes, and questions
-
-### Agent Status Updates
-- Provide periodic updates on agent fleet status
-- Latest every 3 minutes, acknowledge following these rules
-- Monitor for stuck agents and take corrective action
-- Track completion and launch new agents to maintain velocity
 
 ---
 
@@ -67,7 +142,12 @@ disable-model-invocation: true
 - Demand visual proof (screenshots) from agents for UI work
 - Require error-free browser and container logs from real tests with real data
 - Never accept simple claims of "successfully completed" without real proof
-- Type of acceptable proof depends on component type
+
+**Verification depth should match risk:**
+- **Server deployments** -> Full proof (logs, health checks, real traffic test)
+- **API changes** -> Test with real requests, check response format
+- **Config edits** -> Quick sanity check (file syntax, service restart)
+- **Documentation updates** -> Read the diff, spot check accuracy
 
 ### System-Level Success
 - Focus on big picture system level outcomes
@@ -81,7 +161,7 @@ disable-model-invocation: true
 ## Testing Strategy
 
 ### Background Testing
-- Testing must be in background - no user popups
+- Testing must be in background — no user popups
 - Ideally use Puppeteer headless or similar
 - Run real tests with real data
 - Capture browser and container logs
@@ -102,8 +182,8 @@ disable-model-invocation: true
 - Any scope expansion
 
 ### Strict Rules:
-- No scope creep - stick to the task
-- No mock functionality - strictly forbidden
+- No scope creep — stick to the task
+- No mock functionality — strictly forbidden
 - Build real implementations only
 - Re-work and extend task planning to meet user intent
 
@@ -112,6 +192,8 @@ disable-model-invocation: true
 ## Context and State Management
 
 ### Maintain Continuity
+- **When resuming from context compaction, re-read MEMORY.md and the task list before taking action**
+- **Maintain a mental model of what's deployed, what's broken, and what's next**
 - Ensure not to lose track of task planning during context compaction
 - Preserve instructions when compacting conversations
 - Keep agent assignments and status tracked
@@ -121,7 +203,7 @@ disable-model-invocation: true
 - All development is containerized
 - Multiple supervisor agents and human users work in parallel
 - Must not stop/restart global services (docker/orbstack)
-- Stick to assigned ports - keep them consistent
+- Stick to assigned ports — keep them consistent
 - Always check if a port is free before use: `lsof -i :PORT`
 - Use non-standard ports where possible
 
@@ -129,14 +211,14 @@ disable-model-invocation: true
 
 ## Acknowledgment Protocol
 
-**IMPORTANT:** Acknowledge following these supervisor rules periodically, latest every 3 minutes when actively managing agents.
+Show agent fleet status when agents are running. No empty status blocks needed.
 
-Format:
+Format (only when there's something to report):
 ```
 [SUPERVISOR STATUS]
 Active agents: X
 - Agent 1: [task] (model: haiku, tokens: XXX)
-- Agent 2: [task] (model: haiku, tokens: XXX)
+- Agent 2: [task] (model: sonnet, tokens: XXX)
 Following supervisor methodology + granular planning
 ```
 

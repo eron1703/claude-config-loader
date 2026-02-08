@@ -8,6 +8,8 @@ disable-model-invocation: false
 
 This skill provides a comprehensive reference for all FlowMaster microservices environment variables, including required settings, defaults, and configuration patterns.
 
+**Note**: The API Gateway (Port 9000) is implemented in **Python/FastAPI** (not Node.js), serving as the central request router and authentication entry point for all client requests.
+
 ## Core Infrastructure Variables
 
 ### JWT & Security (All Services)
@@ -362,6 +364,42 @@ AUTH_SERVICE_URL=http://monolith-backend:8000
 - **Integrations**: Composio (optional, for tool execution)
 - **Token Usage**: Tracks all LLM requests with cost estimation
 
+### DXG Service (Port 8005)
+```
+ARANGODB_URL=http://localhost:8529
+ARANGODB_DATABASE=flowmaster
+OPENAI_API_KEY=sk-...
+DXG_PORT=8005
+DXG_ENVIRONMENT=development
+```
+- **Purpose**: AI-powered dynamic UI generation from workflow context
+- **LLM**: OpenAI GPT-4, temperature 0.3
+- **Database**: ArangoDB (walks workflow graph for context)
+
+### Engage App (Port 3010)
+```
+NEXT_PUBLIC_DXG_API_URL=http://localhost:8005/api/v1
+DXG_API_URL=http://localhost:8005/api/v1
+NEXT_PUBLIC_API_URL=http://localhost:9000
+PORT=3010
+```
+- **Purpose**: Employee-facing task execution with DXG integration
+- **Runtime**: Next.js 16
+- **DXG**: Both public (client) and server-side URLs needed
+
+### SDX API
+```
+SDX_PORT=8010
+SDX_MASTER_KEY=<encryption-key>
+ARANGODB_URL=http://localhost:8529
+ARANGODB_DATABASE=flowmaster
+OPENAI_API_KEY=sk-...
+POSTGRES_URL=postgresql://...
+```
+- **Purpose**: Semantic data management with LLM field matching
+- **Database**: ArangoDB (primary) + PostgreSQL
+- **MCP Server**: JSON-RPC 2.0 interface
+
 ---
 
 ## Environment Variable Categories
@@ -427,8 +465,15 @@ DB 6: Schedule caching (Scheduling Service)
 
 ### Port Mapping
 ```
+3010: Engage App
+3011: SDX Frontend (was 3010, conflict resolved)
 5173: Frontend (Vite)
-9000: API Gateway
+8005: DXG Backend
+8010: SDX API (demo server)
+8529: ArangoDB
+5432: PostgreSQL
+6379: Redis
+9000: API Gateway (Python/FastAPI)
 9001: AI Agent Service
 9002: Document Intelligence
 9003: Process Design
@@ -438,9 +483,6 @@ DB 6: Schedule caching (Scheduling Service)
 9010: WebSocket Gateway
 9011: Notification
 9013: Event Bus
-8529: ArangoDB
-5432: PostgreSQL
-6379: Redis
 9092: Kafka
 ```
 

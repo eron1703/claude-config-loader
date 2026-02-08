@@ -53,11 +53,18 @@ glab variable get BASTION_PASSWORD --group flow-master
 glab variable get EXTERNAL_API_TOKEN --group flow-master
 glab variable get SLACK_WEBHOOK_URL --group flow-master
 
-# Hetzner Cloud
+# Hetzner Cloud (firewall, servers, DNS)
 glab variable get HETZNER_API_TOKEN --group flow-master
-
-**Note:** Hetzner token is used for managing the demo server firewall at 65.21.153.235.
 ```
+
+### Hetzner Cloud API Token
+- **Location**: GitLab CI/CD group variable `HETZNER_API_TOKEN` (masked, protected)
+- **Group**: `flow-master` (ID: 122023679)
+- **Use for**: Managing demo server (65.21.153.235) firewall rules, server operations
+- **API endpoint**: `https://api.hetzner.cloud/v1/`
+- **Auth header**: `Authorization: Bearer $HETZNER_API_TOKEN`
+- **Firewall ID**: 2269906 ("firewall-1") — attached to demo-server-001
+- **Quick firewall check**: `curl -s -H "Authorization: Bearer $TOKEN" https://api.hetzner.cloud/v1/firewalls/2269906 | python3 -m json.tool`
 
 ## Where are credentials stored?
 

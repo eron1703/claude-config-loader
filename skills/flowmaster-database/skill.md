@@ -8,7 +8,7 @@ disable-model-invocation: false
 
 ## Overview
 
-FlowMaster v1.5 uses ArangoDB as its backend database, providing a flexible document-oriented schema for managing complex business processes, AI agents, and workflow execution. The database supports both document collections and edge collections for maintaining rich relationship graphs between entities.
+FlowMaster v1.5 uses ArangoDB as its backend database, providing a flexible document-oriented schema for managing complex business processes, AI agents, and workflow execution. The database supports both document collections and edge collections for maintaining rich relationship graphs between entities. This database is shared between FlowMaster core services AND SDX (Semantic Data eXchange) infrastructure.
 
 **Database Name:** flowmaster
 **Version:** 1.5
@@ -227,6 +227,22 @@ human_tasks:
 | `tenant_configurations` | Tenant-specific configurations | Document |
 | `notification_preferences` | User notification settings | Document |
 
+### SDX Data Layer
+
+| Collection | Purpose | Type |
+|------------|---------|------|
+| `sdx_datasources` | External data source definitions | Document |
+| `sdx_schemas` | Database schema metadata | Document |
+| `sdx_tables` | Table definitions | Document |
+| `sdx_columns` | Column definitions with annotations | Document |
+| `sdx_connections` | Database connection credentials (encrypted) | Document |
+| `sdx_llm_configs` | LLM provider configurations | Document |
+| `sdx_secrets` | Encrypted credential storage | Document |
+| `sdx_annotations` | Semantic data annotations | Document |
+| `sdx_jobs` | Async job tracking | Document |
+| `sdx_webhooks` | Webhook subscriptions | Document |
+| `sdx_audit` | SDX audit logs | Document |
+
 ## Important Relationships
 
 ### Process Definition Hierarchy
@@ -299,16 +315,20 @@ human_tasks (1) --references--> (1) agent_tasks (optional)
 
 **Task Priority:** low, medium, high, urgent
 
-### Node Types
+### Node Types (Current - being refactored per R11-R16)
 
 **start** - Entry point of process
 **end** - Exit point of process
-**action** - Manual/human action
+**human_internal** - Internal employee task (R12)
+**human_external** - Task for external parties in affiliated orgs (R13)
+**machine** - Automated/system task (R14)
+**external_affiliated** - Task involving affiliated organizations (R15)
+**external_third_party** - Task involving external third parties (R16)
 **ai_agent** - AI-powered operation
-**script** - Automated script execution
 **subprocess** - Call to another process
-**decision** - Branching logic node
-**parallel** - Parallel execution fork
+**decision** - Branching logic node (gateway)
+
+Note: Current code has: start, end, task, service_task, gateway, event, subprocess, data_object. The above are TARGET types per R11-R16.
 
 ### Action Types
 
