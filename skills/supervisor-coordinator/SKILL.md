@@ -65,12 +65,46 @@ tell application "Terminal"
 end tell'
 ```
 
-### 4. LAUNCHING SUPERVISORS VIA TMUX
-```bash
-# Create tmux session for a supervisor
-tmux new-session -d -s supervisor-X -c ~/projects/flowmaster \
-  "claude --dangerously-skip-permissions 'PROMPT HERE'"
+### 4. LAUNCHING SUPERVISORS — VISIBLE TERMINALS (HARD RULE)
 
+**NEVER launch terminals in background only.** The user MUST be able to SEE every supervisor terminal.
+
+**Correct pattern — open a visible Terminal.app window, THEN attach tmux:**
+```bash
+# Step 1: Create tmux session (detached is OK as intermediate step)
+tmux new-session -d -s supervisor-X -c ~/projects/flowmaster
+
+# Step 2: Open a NEW visible Terminal.app window attached to the tmux session
+osascript -e 'tell application "Terminal" to do script "tmux attach-session -t supervisor-X"'
+
+# Step 3: Send the claude command into the visible terminal
+tmux send-keys -t supervisor-X "claude --dangerously-skip-permissions 'PROMPT HERE'" Enter
+```
+
+**OR reuse an existing idle Terminal.app window:**
+```bash
+# Kill the old tmux session if any
+tmux kill-session -t old-supervisor 2>/dev/null
+
+# Create new session and attach in the existing terminal tab
+# Use osascript to send commands to an existing Terminal.app window
+osascript -e '
+tell application "Terminal"
+    repeat with w in windows
+        if name of w contains "IDLE_KEYWORD" then
+            do script "tmux new-session -s supervisor-X -c ~/projects/flowmaster" in first tab of w
+            return
+        end if
+    end repeat
+end tell'
+
+# Then send the claude command
+sleep 2
+tmux send-keys -t supervisor-X "claude --dangerously-skip-permissions 'PROMPT HERE'" Enter
+```
+
+**Reading and controlling tmux sessions:**
+```bash
 # Check if session exists
 tmux has-session -t supervisor-X 2>/dev/null && echo "running" || echo "dead"
 
@@ -84,12 +118,30 @@ tmux send-keys -t supervisor-X "NEW TASK INSTRUCTIONS" Enter
 tmux kill-session -t supervisor-X
 ```
 
-### 5. RETASKING IDLE SUPERVISORS
+**RULES:**
+- User must ALWAYS be able to see supervisor terminals in Terminal.app
+- The coordinator can remote-control via `tmux send-keys` and `tmux capture-pane`
+- NEVER use `tmux new-session -d` as the ONLY step — always ensure a visible window is attached
+- When reusing stale terminal windows, launch new supervisors IN those windows
+
+### 5. RETASKING IDLE SUPERVISORS — IMMEDIATELY (HARD RULE)
+
+**NEVER let a supervisor sit idle for more than 2 minutes.** The coordinator's #1 job is detecting idle supervisors and retasking or killing them instantly.
+
 When a supervisor reports IDLE/COMPLETE:
-1. Check Plane for remaining work items in Backlog/InProgress
-2. Create a new task brief in `supervisor-tasks/`
-3. Send the new task to the idle supervisor via tmux `send-keys`
-4. Or kill and relaunch with a new prompt
+1. Detect it on the NEXT timer check-in (within 2 minutes max)
+2. Check Plane for remaining work items in Backlog/InProgress
+3. Either:
+   a. Send new work via `tmux send-keys` to the existing session, OR
+   b. Kill the session and reuse the terminal window for a new supervisor
+4. **NEVER** leave an idle supervisor running while the user watches it do nothing
+5. If the user has to point out a stale supervisor — the coordinator has FAILED
+
+**Anti-patterns (NEVER DO):**
+- Letting idle supervisors sit for 5+ minutes
+- Waiting for the user to notice stale supervisors
+- Launching new supervisors in new hidden terminals while old ones sit idle
+- "I'll check on them later" — NO. Check NOW, every timer cycle.
 
 ### 6. WHEN USER ASKS FOR STATUS
 1. Read ALL supervisor terminals immediately
@@ -108,3 +160,7 @@ When a supervisor reports IDLE/COMPLETE:
 - Creating branches and writing code
 - Spending more than 2 minutes investigating before reporting
 - Forgetting to check terminal status when user asks
+- **Launching tmux sessions in background only** (`-d` without attaching a visible window)
+- **Letting idle supervisors sit for more than 2 minutes** — detect and retask immediately
+- **Launching new supervisors in hidden terminals while stale ones sit visible** — reuse the stale windows instead
+- **Waiting for the user to point out stale supervisors** — that is the coordinator's ONLY job
