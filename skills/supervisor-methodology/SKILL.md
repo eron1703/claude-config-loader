@@ -106,6 +106,26 @@ Each identified gap becomes a spec suitable for an agent:
 
 ## Agent Management
 
+### Agent Skill System (MANDATORY — see supervisor-agent-launch)
+Every agent MUST be launched with the skill-loading prompt template. Workers get 3 layers:
+1. **Core behavioral**: worker-role, worker-reporting, worker-stuck-protocol
+2. **Role-specific**: worker-role-{coder|infra|tester|frontend|database}
+3. **Knowledge**: worker-{ssh|gitlab|k8s|database|api-gateway|frontend|services} + flowmaster-*
+
+### Timer Agent (NON-NEGOTIABLE — see supervisor-timer)
+ALWAYS have exactly one timer running when agents are active. The Schemer fires every ~2 min, triggering a check-in cycle:
+1. Peek at every running agent: `TaskOutput(task_id, block=false)`
+2. Assess: completed → process results | progressing → leave alone | stuck → kill + re-launch
+3. Report to user with visible progress
+4. Launch new timer IMMEDIATELY
+5. Launch new work agents if slots available
+
+### Agent Conversation (see supervisor-conversation)
+- **Peek**: `TaskOutput(task_id, block=false)` — non-blocking observation
+- **Resume**: `Task(resume=agent_id, prompt="Answers: ...")` — continue with new info
+- **Kill**: `TaskStop(task_id)` — after 2 consecutive stale check-ins
+- Max 3 resumes per agent before re-scoping and launching fresh
+
 ### Launch Strategy
 - **Match agent count to available independent work**
 - If you have 15 independent tasks ready, launch 15 agents
