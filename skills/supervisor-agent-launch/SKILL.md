@@ -29,13 +29,37 @@ READ THESE SKILLS BEFORE STARTING (in order):
 
 ## Skill Loading Matrix
 
+### Typical Combinations (starting point — add more as needed)
+
 | Agent Role | Role Skill | Typical Knowledge Skills |
 |-----------|-----------|------------------------|
 | **Coder** | worker-role-coder | worker-gitlab + task-specific (flowmaster-backend, etc.) |
 | **Infra** | worker-role-infra | worker-ssh, worker-k8s, worker-services |
-| **Tester** | worker-role-tester | worker-services, worker-ssh |
+| **Tester** | worker-role-tester | worker-services, worker-ssh, testing (test-rig) |
 | **Frontend** | worker-role-frontend | worker-frontend, worker-gitlab |
 | **Database** | worker-role-database | worker-database, worker-services |
+
+### All Available Knowledge Skills (pick any combination per task)
+
+| Skill | Content | Use When |
+|-------|---------|----------|
+| `worker-ssh` | SSH hosts, keys, timeout patterns | Any server access |
+| `worker-gitlab` | PAT, repo URLs, clone/push | Any git operations |
+| `worker-k8s` | Namespaces, kubectl, registry, ClusterIPs | K8S deployments |
+| `worker-database` | ArangoDB + PostgreSQL + Redis connections | DB operations |
+| `worker-api-gateway` | Nginx → Gateway → Service routing chain | API routing issues |
+| `worker-frontend` | Next.js repo, build args, auth creds | Frontend work |
+| `worker-services` | All 29 services: port, health, stack | Service lookups |
+| `testing` | test-rig CLI, TDD workflow, CI patterns | Running tests |
+| `flowmaster-overview` | System architecture, core concepts | Architecture context |
+| `flowmaster-backend` | 13 services + 3 apps, APIs, endpoints | Backend dev |
+| `flowmaster-database` | ArangoDB schema, collections, relationships | Schema work |
+| `flowmaster-environment` | Service env vars, ports, config | Config/deploy |
+| `flowmaster-frontend` | UI components, patterns, integration | Frontend dev |
+| `flowmaster-server` | Server infra, CI/CD, deployment | DevOps |
+| `flowmaster-tools` | MCP tools, integrations, SDX | Integrations |
+
+The supervisor decides which knowledge skills each agent needs based on the task. More skills = more context but also more tokens. Pick the minimum set needed.
 
 ## Launch Rules
 
