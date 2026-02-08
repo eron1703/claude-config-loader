@@ -66,6 +66,15 @@ glab variable get HETZNER_API_TOKEN --group flow-master
 - **Firewall ID**: 2269906 ("firewall-1") — attached to demo-server-001
 - **Quick firewall check**: `curl -s -H "Authorization: Bearer $TOKEN" https://api.hetzner.cloud/v1/firewalls/2269906 | python3 -m json.tool`
 
+### Grafana Monitoring
+- **Location**: GitLab CI/CD group variable `GRAFANA_ADMIN_PASSWORD` (masked, protected)
+- **Group**: `flow-master` (ID: 122023679)
+- **URL variable**: `GRAFANA_URL` (not masked, not protected)
+- **Dashboard**: http://65.21.153.235:3001
+- **Admin user**: `admin`
+- **Use for**: Viewing dashboards, managing alert rules, checking monitoring data
+- **Quick check**: `curl -s http://admin:$(glab variable get GRAFANA_ADMIN_PASSWORD --group flow-master)@65.21.153.235:3001/api/health`
+
 ## Where are credentials stored?
 
 **In GitLab UI:**

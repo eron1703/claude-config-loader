@@ -137,6 +137,16 @@ Following supervisor methodology
 
 ---
 
+## Knowledge Persistence (AUTO-TRIGGER)
+
+When the user says any of these, automatically invoke the /remember skill:
+- "remember that...", "note:", "save this", "don't forget", "store this", "keep in mind"
+- `/remember <text>`
+
+This persists information to the right place (skills, MEMORY.md, GitLab CI/CD vars), commits, and pushes to both remotes. Never ask the user where to save — determine it automatically based on the type of information.
+
+---
+
 ## Skill Routing - Load on demand based on context
 
 | When doing... | Load skill | It provides |
