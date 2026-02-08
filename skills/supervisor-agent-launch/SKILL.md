@@ -27,39 +27,60 @@ READ THESE SKILLS BEFORE STARTING (in order):
 [ACCEPTANCE]: {how to verify the task is done — specific checks}
 ```
 
-## Skill Loading Matrix
+## Skill Loading Model — Gated Access
 
-### Typical Combinations (starting point — add more as needed)
+Workers get **minimal defaults**. Additional knowledge skills are loaded **on-request** — the worker asks, the supervisor approves or denies to prevent scope creep.
 
-| Agent Role | Role Skill | Typical Knowledge Skills |
-|-----------|-----------|------------------------|
-| **Coder** | worker-role-coder | worker-gitlab + task-specific (flowmaster-backend, etc.) |
-| **Infra** | worker-role-infra | worker-ssh, worker-k8s, worker-services |
-| **Tester** | worker-role-tester | worker-services, worker-ssh, testing (test-rig) |
-| **Frontend** | worker-role-frontend | worker-frontend, worker-gitlab |
-| **Database** | worker-role-database | worker-database, worker-services |
+### Layer 1: Core (ALL agents — always loaded)
+Every agent gets these 3 behavioral skills. Non-negotiable.
+- `worker-role` — base identity, rules, capability request protocol
+- `worker-reporting` — structured output format
+- `worker-stuck-protocol` — exit early when stuck
 
-### All Available Knowledge Skills (pick any combination per task)
+### Layer 2: Role (per agent type — always loaded)
+One role skill per agent, matching the `[ROLE]` in the task prompt.
+- `worker-role-coder` | `worker-role-infra` | `worker-role-tester` | `worker-role-frontend` | `worker-role-database`
 
-| Skill | Content | Use When |
-|-------|---------|----------|
-| `worker-ssh` | SSH hosts, keys, timeout patterns | Any server access |
-| `worker-gitlab` | PAT, repo URLs, clone/push | Any git operations |
-| `worker-k8s` | Namespaces, kubectl, registry, ClusterIPs | K8S deployments |
-| `worker-database` | ArangoDB + PostgreSQL + Redis connections | DB operations |
-| `worker-api-gateway` | Nginx → Gateway → Service routing chain | API routing issues |
-| `worker-frontend` | Next.js repo, build args, auth creds | Frontend work |
-| `worker-services` | All 29 services: port, health, stack | Service lookups |
-| `testing` | test-rig CLI, TDD workflow, CI patterns | Running tests |
-| `flowmaster-overview` | System architecture, core concepts | Architecture context |
-| `flowmaster-backend` | 13 services + 3 apps, APIs, endpoints | Backend dev |
-| `flowmaster-database` | ArangoDB schema, collections, relationships | Schema work |
-| `flowmaster-environment` | Service env vars, ports, config | Config/deploy |
-| `flowmaster-frontend` | UI components, patterns, integration | Frontend dev |
-| `flowmaster-server` | Server infra, CI/CD, deployment | DevOps |
-| `flowmaster-tools` | MCP tools, integrations, SDX | Integrations |
+### Layer 3: Default Knowledge (loaded at launch — per role)
 
-The supervisor decides which knowledge skills each agent needs based on the task. More skills = more context but also more tokens. Pick the minimum set needed.
+These knowledge skills are loaded **automatically** because the role can't function without them.
+
+| Agent Role | Default Knowledge Skills | Why |
+|-----------|------------------------|-----|
+| **ALL roles** | `worker-ssh`, `worker-gitlab` | Credentials, SSH keys, repo access — every agent needs these |
+| **Coder** | _(+ task-specific, decided by supervisor)_ | Supervisor picks 1-2 relevant `flowmaster-*` skills |
+| **Infra** | `worker-k8s`, `worker-services` | Can't do infra without knowing the cluster and services |
+| **Tester** | `worker-services`, `testing` | Test-rig tool + service endpoints are essential |
+| **Frontend** | `worker-frontend` | Build args, repo structure, auth creds |
+| **Database** | `worker-database`, `worker-services` | Connection strings, schemas, service topology |
+
+### Layer 4: On-Request Knowledge (worker asks, supervisor gates)
+
+These skills are NOT loaded at launch. Workers can **request** them mid-task using the `NEED_CAPABILITY` pattern (see worker-role skill).
+
+| Skill | Content | Typical Requester |
+|-------|---------|-------------------|
+| `worker-k8s` | Namespaces, kubectl, registry, ClusterIPs | Coder needing deployment info |
+| `worker-database` | ArangoDB + PostgreSQL + Redis connections | Coder or tester needing DB access |
+| `worker-api-gateway` | Nginx → Gateway → Service routing chain | Coder debugging routing |
+| `worker-services` | All 29 services: port, health, stack | Coder needing service topology |
+| `worker-frontend` | Next.js repo, build args, auth creds | Coder doing full-stack work |
+| `testing` | test-rig CLI, TDD workflow, CI patterns | Coder writing tests |
+| `flowmaster-overview` | System architecture, core concepts | Any agent needing context |
+| `flowmaster-backend` | 13 services + 3 apps, APIs, endpoints | Coder, tester |
+| `flowmaster-database` | ArangoDB schema, collections, relationships | Coder, database |
+| `flowmaster-environment` | Service env vars, ports, config | Infra, coder |
+| `flowmaster-frontend` | UI components, patterns, integration | Frontend, coder |
+| `flowmaster-server` | Server infra, CI/CD, deployment | Infra |
+| `flowmaster-tools` | MCP tools, integrations, SDX | Coder, infra |
+
+### Supervisor Gating Rules
+
+When a worker requests a capability:
+1. **Approve** if the skill is relevant to the agent's current task scope
+2. **Deny** if the skill would lead to scope creep or overlap with another agent's work
+3. **Resume** the agent with the skill path: `Task(resume=agent_id, prompt="CAPABILITY GRANTED: Read ~/.claude/skills/{skill-name}/SKILL.md and continue.")`
+4. **Deny response**: `Task(resume=agent_id, prompt="CAPABILITY DENIED: {reason}. Stay within your current scope: {restate scope}.")`
 
 ## Launch Rules
 
@@ -87,22 +108,42 @@ Total agents = work agents (3-12) + 1 timer = 4-13 total
 ## Example Launch
 
 ```
-# Launch 5 work agents + 1 timer = 6 total
+# Infra agent — gets default skills for infra role (ssh, gitlab, k8s, services)
 Task(description="Fix process-design routes", model=haiku, run_in_background=true,
   prompt="[TASK]: Add GET /api/v1/processes route to process-design service
   [ROLE]: infra
   [SCOPE]: SSH to demo server, check current routes, add missing endpoint, verify with curl
-  READ THESE SKILLS FIRST:
+
+  READ THESE SKILLS BEFORE STARTING (in order):
   1. ~/.claude/skills/worker-role/SKILL.md
   2. ~/.claude/skills/worker-reporting/SKILL.md
   3. ~/.claude/skills/worker-stuck-protocol/SKILL.md
   4. ~/.claude/skills/worker-role-infra/SKILL.md
-  5. ~/.claude/skills/worker-ssh/SKILL.md
-  6. ~/.claude/skills/worker-k8s/SKILL.md
-  7. ~/.claude/skills/worker-services/SKILL.md
+  5. ~/.claude/skills/worker-ssh/SKILL.md      (default: ALL roles)
+  6. ~/.claude/skills/worker-gitlab/SKILL.md    (default: ALL roles)
+  7. ~/.claude/skills/worker-k8s/SKILL.md       (default: infra)
+  8. ~/.claude/skills/worker-services/SKILL.md  (default: infra)
+
   [ACCEPTANCE]: curl http://localhost:9003/api/v1/processes/ returns 200 with JSON")
 
-# Plus 4 more work agents... Plus 1 timer agent
+# Coder agent — gets defaults + supervisor picks 1 task-specific skill
+Task(description="Add rate limiting to API Gateway", model=sonnet, run_in_background=true,
+  prompt="[TASK]: Add rate limiting middleware to API Gateway using Redis token bucket
+  [ROLE]: coder
+  [SCOPE]: Edit api-gateway source, add middleware, add unit tests. Do NOT deploy.
+
+  READ THESE SKILLS BEFORE STARTING (in order):
+  1. ~/.claude/skills/worker-role/SKILL.md
+  2. ~/.claude/skills/worker-reporting/SKILL.md
+  3. ~/.claude/skills/worker-stuck-protocol/SKILL.md
+  4. ~/.claude/skills/worker-role-coder/SKILL.md
+  5. ~/.claude/skills/worker-ssh/SKILL.md      (default: ALL roles)
+  6. ~/.claude/skills/worker-gitlab/SKILL.md    (default: ALL roles)
+  7. ~/.claude/skills/flowmaster-backend/SKILL.md  (supervisor-selected for this task)
+
+  [ACCEPTANCE]: Unit tests pass, middleware intercepts requests, returns 429 on limit")
+
+# Plus more work agents... Plus 1 timer agent
 ```
 
 ## Anti-Patterns

@@ -46,8 +46,52 @@ Before doing ANYTHING, read all skill files listed in your task prompt. These co
 - SSH access to servers (details in worker-ssh skill)
 - Git repos (details in worker-gitlab skill)
 
+## Requesting Additional Capabilities
+
+If you encounter something outside your loaded skills — a database connection string you don't have, a service port you need, an API schema you're missing — you can **request a capability** from the supervisor.
+
+### How to Request
+Report with STATUS: BLOCKED and include a `NEED_CAPABILITY` line:
+
+```
+## STATUS: BLOCKED
+
+## ACCOMPLISHED
+- {what you did so far}
+
+## NEED_CAPABILITY
+Skill: {skill-name}
+Reason: {one sentence — why you need it for THIS task}
+
+## REMAINING
+- {what you'll do once you have it}
+```
+
+### Rules for Requesting
+- Only request skills that are directly relevant to YOUR task
+- Never request skills to explore outside your scope
+- Be specific: "I need `worker-database` to get the PostgreSQL connection string for auth-service" — not "I need database access"
+- The supervisor may DENY your request if it's outside scope — accept and stay within your current skills
+- You can request at most 2 additional skills per task — if you need more, your task was scoped too broadly
+
+### Available Skills You Can Request
+- `worker-k8s` — K8S cluster info (namespaces, kubectl, registry)
+- `worker-database` — Database connections (ArangoDB, PostgreSQL, Redis)
+- `worker-api-gateway` — Routing chain (Nginx → Gateway → Service)
+- `worker-services` — All 29 services (ports, health, stack)
+- `worker-frontend` — Frontend repo (Next.js, build args)
+- `testing` — Test-rig CLI and testing patterns
+- `flowmaster-overview` — System architecture
+- `flowmaster-backend` — Backend APIs and endpoints
+- `flowmaster-database` — ArangoDB schema and collections
+- `flowmaster-environment` — Service env vars and config
+- `flowmaster-frontend` — UI components and patterns
+- `flowmaster-server` — Server infra and CI/CD
+- `flowmaster-tools` — MCP tools and integrations
+
 ## What You Do NOT Do
 - Launch sub-agents or Task tools
 - Make architectural decisions (report to supervisor)
 - Change scope mid-task
 - Spend more than 5 minutes without reporting progress
+- Request capabilities to explore outside your assigned scope

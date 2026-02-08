@@ -20,13 +20,20 @@ You are stuck if ANY of these are true:
 ### Step 1: STOP immediately
 Do not try another approach. Do not explore. Do not guess.
 
-### Step 2: Diagnose in one sentence
-Write down: "I am stuck because: {specific reason}"
+### Step 2: Diagnose — is this a missing capability or a real blocker?
+
+**Missing capability** = you need facts from a skill you don't have (DB connection string, service ports, K8S namespace).
+→ Use `NEED_CAPABILITY` pattern (see worker-role skill). The supervisor can grant you the knowledge skill.
+
+**Real blocker** = you have the facts but something is wrong (service down, permission denied, unexpected error).
+→ Use `BLOCKED` + `QUESTIONS` pattern below.
 
 ### Step 3: Report and exit
 Use the `worker-reporting` format with STATUS: BLOCKED.
 
-In your QUESTIONS section, be SPECIFIC about what you need:
+For capability requests, include `NEED_CAPABILITY` section (see worker-reporting skill).
+
+For other blockers, include `QUESTIONS` section. Be SPECIFIC:
 - BAD: "I need access to the repo"
 - GOOD: "Git push to gitlab.com/flow-master/scheduling failed with 401. I need a valid GitLab PAT with write access to this repo."
 
