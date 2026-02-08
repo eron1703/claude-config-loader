@@ -113,6 +113,13 @@ Each identified gap becomes a spec suitable for an agent:
 - When one agent completes, launch additional new agents if work exists
 - If agents get stuck, launch helper agents to unstick them or re-task them
 
+### Minimum Agent Requirements (HARD ENFORCEMENT)
+- **3 agents minimum** — never launch fewer for multi-task work
+- **5-7 agents target** — this is the sweet spot for throughput
+- **12 agents maximum** — beyond this, coordination overhead increases
+- If you only launch 2 agents, you are NOT following supervisor methodology
+- "Broad parallel attack" means 5+ agents, not 2-3
+
 ### Manager Rhythm (HARD ENFORCEMENT — referenced from core-rules)
 See core-rules "Manager Rhythm" for the full protocol. Key points:
 - You are a manager, not a spectator. NEVER idle while agents work.
