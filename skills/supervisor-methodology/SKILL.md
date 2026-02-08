@@ -106,11 +106,18 @@ Each identified gap becomes a spec suitable for an agent:
 
 ## Agent Management
 
-### Agent Skill System (MANDATORY — see supervisor-agent-launch)
-Every agent MUST be launched with the skill-loading prompt template. Workers get 3 layers:
-1. **Core behavioral**: worker-role, worker-reporting, worker-stuck-protocol
-2. **Role-specific**: worker-role-{coder|infra|tester|frontend|database}
-3. **Knowledge**: worker-{ssh|gitlab|k8s|database|api-gateway|frontend|services} + flowmaster-*
+### Agent Skill System — Gated Access (MANDATORY — see supervisor-agent-launch)
+Every agent MUST be launched with the skill-loading prompt template. Workers get 4 layers:
+1. **Core behavioral** (ALL agents): `worker-role`, `worker-reporting`, `worker-stuck-protocol`
+2. **Role-specific** (per type): `worker-role-{coder|infra|tester|frontend|database}`
+3. **Default knowledge** (auto-loaded per role):
+   - ALL roles get: `worker-ssh`, `worker-gitlab` (credentials/access)
+   - Infra gets: `worker-k8s`, `worker-services`
+   - Tester gets: `worker-services`, `testing`
+   - Frontend gets: `worker-frontend`
+   - Database gets: `worker-database`, `worker-services`
+   - Coder gets: 1-2 task-specific `flowmaster-*` skills (supervisor picks)
+4. **On-request knowledge** (gated by supervisor): all other skills — worker asks via `NEED_CAPABILITY`, supervisor grants or denies to prevent scope creep. Max 2 grants per agent.
 
 ### Timer Agent (NON-NEGOTIABLE — see supervisor-timer)
 ALWAYS have exactly one timer running when agents are active. The Schemer fires every ~2 min, triggering a check-in cycle:
