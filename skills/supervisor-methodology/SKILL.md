@@ -214,19 +214,46 @@ Bad: "Fix the API Gateway and make it better with proper error handling and secu
 
 ---
 
-## Testing Strategy
+## Testing Strategy — TDD with test-rig (MANDATORY)
+
+### NO SPECS = NO CODE. NO TESTS = NO CODE.
+
+This is the development methodology. Every feature follows **Red-Green-Refactor**:
+
+1. **Specs first**: Every work item MUST have detailed screen specs and test cases in Plane BEFORE any coding agent starts. If specs don't exist, launch a spec agent to write them first.
+2. **Tests first**: Coding agents write failing tests BEFORE implementation code. Use `test-rig generate` to scaffold, then customize from work item specs.
+3. **Implementation second**: Write minimum code to pass tests.
+4. **Refactor third**: Improve while keeping tests green.
+5. **Coverage gate**: `test-rig coverage --threshold 80` must pass before commit.
+
+### test-rig is MANDATORY for ALL agents
+- `test-rig setup` — run once per project to initialize framework
+- `test-rig generate <component>` — scaffold tests from component analysis
+- `test-rig run unit` — run unit tests (must pass before commit)
+- `test-rig run integration` — run integration tests
+- `test-rig coverage --threshold 80` — enforce 80% coverage
+- `test-rig doctor` — verify test infrastructure health
+
+### Supervisor's Role in TDD
+- **Verify specs exist** in Plane work items before assigning to coding agents
+- **Include `testing` skill** in every coder/frontend agent's skill list
+- **Verify test results**: Demand `test-rig run` output as proof of completion
+- **Reject work** that doesn't include passing tests — send agent back to write tests first
+- **Run verification**: `test-rig coverage` on completed work before marking Done
+
+### Work Item Spec Requirements (BEFORE coding starts)
+Every Plane work item assigned to a coding agent MUST have:
+- **Screen spec**: Exact layout, components, routes, data contracts
+- **API contracts**: Request/response shapes, endpoints, error cases
+- **Test cases**: Numbered list of what to test (renders X, handles Y, validates Z)
+- **Acceptance criteria**: Specific verifiable conditions
+
+If a work item lacks these, DO NOT assign it to a coding agent. Launch a spec agent first.
 
 ### Background Testing
-- Testing must be in background — no user popups
-- Ideally use Puppeteer headless or similar
-- Run real tests with real data
-- Capture browser and container logs
-
-### Iterative Approach
-- Don't waste time on pointless endless testing
-- Fix the basics first, then test again
-- Work iteratively
-- Focus on critical path issues first
+- All testing runs in background — no user popups
+- Use `test-rig run --parallel` for fast feedback
+- Capture test output as proof in agent reports
 
 ---
 

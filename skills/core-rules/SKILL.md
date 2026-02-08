@@ -55,10 +55,10 @@ Every worker agent MUST be launched with skills using the prompt template in `su
 | Role | Default Knowledge | Why |
 |------|------------------|-----|
 | **ALL roles** | `worker-ssh`, `worker-gitlab` | Credentials, SSH keys, repo access — every agent needs these |
-| **Coder** | _(+ 1-2 task-specific `flowmaster-*` skills, supervisor picks)_ | Context for the specific code being touched |
+| **Coder** | `testing` _(+ 1-2 task-specific `flowmaster-*` skills)_ | TDD is MANDATORY — test-rig must be available |
 | **Infra** | `worker-k8s`, `worker-services` | Can't do infra without cluster and service knowledge |
 | **Tester** | `worker-services`, `testing` | Test-rig tool + service endpoints are essential |
-| **Frontend** | `worker-frontend` | Build args, repo structure, auth creds |
+| **Frontend** | `worker-frontend`, `testing` | Build args + TDD is MANDATORY |
 | **Database** | `worker-database`, `worker-services` | Connection strings, schemas, service topology |
 
 **Layer 4 — On-request knowledge (worker asks, supervisor gates):**

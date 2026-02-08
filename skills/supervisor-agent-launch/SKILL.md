@@ -48,10 +48,10 @@ These knowledge skills are loaded **automatically** because the role can't funct
 | Agent Role | Default Knowledge Skills | Why |
 |-----------|------------------------|-----|
 | **ALL roles** | `worker-ssh`, `worker-gitlab` | Credentials, SSH keys, repo access — every agent needs these |
-| **Coder** | _(+ task-specific, decided by supervisor)_ | Supervisor picks 1-2 relevant `flowmaster-*` skills |
+| **Coder** | `testing` _(+ task-specific `flowmaster-*` skills)_ | TDD is MANDATORY — test-rig must be available. Supervisor picks 1-2 relevant `flowmaster-*` skills |
 | **Infra** | `worker-k8s`, `worker-services` | Can't do infra without knowing the cluster and services |
 | **Tester** | `worker-services`, `testing` | Test-rig tool + service endpoints are essential |
-| **Frontend** | `worker-frontend` | Build args, repo structure, auth creds |
+| **Frontend** | `worker-frontend`, `testing` | Build args, repo structure + TDD is MANDATORY |
 | **Database** | `worker-database`, `worker-services` | Connection strings, schemas, service topology |
 
 ### Layer 4: On-Request Knowledge (worker asks, supervisor gates)
@@ -65,7 +65,7 @@ These skills are NOT loaded at launch. Workers can **request** them mid-task usi
 | `worker-api-gateway` | Nginx → Gateway → Service routing chain | Coder debugging routing |
 | `worker-services` | All 29 services: port, health, stack | Coder needing service topology |
 | `worker-frontend` | Next.js repo, build args, auth creds | Coder doing full-stack work |
-| `testing` | test-rig CLI, TDD workflow, CI patterns | Coder writing tests |
+| `testing` | test-rig CLI, TDD workflow, CI patterns | Infra/database agents needing test capabilities (already default for coder/frontend/tester) |
 | `flowmaster-overview` | System architecture, core concepts | Any agent needing context |
 | `flowmaster-backend` | 13 services + 3 apps, APIs, endpoints | Coder, tester |
 | `flowmaster-database` | ArangoDB schema, collections, relationships | Coder, database |
