@@ -113,26 +113,27 @@ Each identified gap becomes a spec suitable for an agent:
 - When one agent completes, launch additional new agents if work exists
 - If agents get stuck, launch helper agents to unstick them or re-task them
 
-### Agent Execution Speed (CRITICAL - ENFORCED)
-**Max agent wait time: 3 minutes** — If an agent hasn't produced measurable output in 3 minutes, it's stuck and must be killed + re-tasked immediately.
+### Manager Rhythm (HARD ENFORCEMENT — referenced from core-rules)
+See core-rules "Manager Rhythm" for the full protocol. Key points:
+- You are a manager, not a spectator. NEVER idle while agents work.
+- Process results as they arrive — don't wait for all agents.
+- If an agent is slow (>2 min), launch a replacement. Don't block.
+- Every response must contain visible progress. No empty waits.
+- If 4/5 agents done, report 4 results NOW.
 
-**Parallel-first execution (MANDATORY):**
-- Always launch 5+ agents minimum when parallel work is available
-- Never wait for one agent before launching others — launch ALL agents simultaneously
-- Do not serialize work that can run in parallel
-- Lack of parallelism = wasted time
+**Anti-patterns (NEVER DO THESE):**
+- Launching agents then producing a response that says "waiting for results..."
+- Holding all results until every agent finishes
+- Letting one stuck agent delay the user for 5+ minutes
+- Responding only with "agents are working on it" with no substance
+- Doing nothing useful while agents are running
 
-**Timeouts (MANDATORY for all agents):**
-- SSH commands: max 15 seconds
-- Docker builds: max 5 minutes
-- Tests: max 3 minutes
-- Any agent exceeding its time budget must be killed and re-tasked with adjusted scope
-
-**Verification + fix agents (PARALLEL):**
-- Always launch verification agents alongside fix agents
-- Do not wait for fix to complete before starting verification
-- Parallel verification catches issues faster
-- Verification agents run independently with same context as fix agents
+**What to do WHILE agents run:**
+- Update MEMORY.md with what's been decided
+- Prepare specs for the next batch of agents
+- Read files needed for upcoming work
+- Plan the next set of parallel tasks
+- Report partial results to the user
 
 ### Model Selection
 - **Haiku** for straightforward implementation tasks (coding, config, deployments)
