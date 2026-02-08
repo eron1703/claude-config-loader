@@ -6,378 +6,230 @@ disable-model-invocation: false
 
 # FlowMaster Server Configuration Skill
 
+> **SNAPSHOT: 2026-02-08 11:00 Dubai Time (07:00 UTC) — likely changing soon**
+
 ## Server Architecture
 
-### Infrastructure Overview
+### Servers Overview
 
-**Server Details:**
-- IP Address: 91.98.159.56
-- Operating System: Ubuntu 24.04.3 LTS
-- Deployment Pattern: Multi-environment single server
+| Server | IP | URL | Deployment | Status (Feb 8) |
+|--------|-----|-----|-----------|----------------|
+| **Demo** | 65.21.153.235 | — | K3S cluster | UP, 29 pods running |
+| **Production** | 91.99.237.14 | app.flow-master.ai | Docker Compose | UP (HTTP 200) |
+| **Staging** | 91.98.159.56 | staging.flow-master.ai | Docker Compose | DOWN (unreachable) |
+| **Dev** | 91.98.159.56 | dev.flow-master.ai | Docker Compose | DOWN (unreachable) |
 
-### Environment Configuration
+**SSH Access (Demo only):** `demo-server` (user: ben) or `demo-server-root` (user: root)
+**OS:** Ubuntu 24.04.3 LTS
 
-| Environment | Branch | Domain | Frontend Port | Backend Port |
-|-------------|--------|--------|------------------|------------------|
-| Production | `production` | app.flow-master.ai | 3002 | 3001 |
-| Staging | `staging` | staging.flow-master.ai | 4000 | 4001 |
-| Demo | `demo` | demo.flow-master.ai | 5000 | 5001 |
-| Development | `develop` | dev.flow-master.ai | 6000 | 6001 |
+---
 
-All frontend containers expose port 80 internally, and backend containers expose port 8000 internally. The server Nginx acts as SSL termination and reverse proxy.
+## Demo Server (65.21.153.235) — PRIMARY
 
-### Directory Structure
+### 3 Active Environments
+
+#### Environment 1: K3S FlowMaster Cluster
+- **Namespace:** `flowmaster`
+- **Pods:** 29 running / 30 deployments (data-intelligence scaled to 0)
+- **Local Registry:** `localhost:30500` (K3S NodePort)
+- **Total Memory:** ~1.65 GB across 29 pods
+
+**Deployed Services (29):**
+
+| Service | Image Tag | Port | Memory | Status |
+|---------|-----------|------|--------|--------|
+| agent-service | r36-r47 | 9016 | 56Mi | Running, UNTESTED |
+| ai-agent | latest | 9006 | 341Mi | Running, UNTESTED |
+| api-gateway | latest | 9000 | 50Mi | Running, UNTESTED |
+| auth-service | ghcr.io latest | 8002 | 53Mi | Running, UNTESTED |
+| bac-marketplace | r73 | 9015 | 54Mi | Running, UNTESTED |
+| business-rules-engine | r69-fix | 8018 | 55Mi | Running, UNTESTED |
+| document-intelligence | r01 | 9002 | 49Mi | Running, UNTESTED |
+| dxg-service | r34-r35 | 9011 | 45Mi | Running, UNTESTED |
+| engage-app | r27-r45 | 3001 | 92Mi | Running, UNTESTED |
+| event-bus | latest | 9013 | 68Mi | Running, UNTESTED |
+| execution-engine | r21-r24 | 9005 | 69Mi | Running, UNTESTED |
+| external-integration | r51-fix3 | 9014 | 53Mi | Running, UNTESTED |
+| frontend | ea2a29b | 3000 | 57Mi | Running, UNTESTED |
+| human-task | r24 | 9006 | 63Mi | Running, UNTESTED |
+| knowledge-hub | r42-r46 | 8009 | 23Mi | Running, UNTESTED |
+| legal-entity-service | r66-fix | 8014 | 51Mi | Running, UNTESTED |
+| manager-app | r30 | 3001 | 34Mi | Running, UNTESTED |
+| mcp-server | latest | 9000 | 43Mi | Running, UNTESTED |
+| notification | r23-final | 9009 | 60Mi | Running, UNTESTED |
+| process-analytics | latest | 9014 | 71Mi | Running, UNTESTED |
+| process-design | r03 | 9003 | 33Mi | Running, UNTESTED |
+| process-designer | r77 | 3002 | 35Mi | Running, UNTESTED |
+| process-linking | r63 | 8021 | 49Mi | Running, UNTESTED |
+| process-versioning | r60-fix | 8020 | 48Mi | Running, UNTESTED |
+| process-views | r57-fix | 8019 | 49Mi | Running, UNTESTED |
+| prompt-engineering | r39 | 8012 | 59Mi | Running, UNTESTED |
+| scheduling | 192c806d | 9008 | 64Mi | Running, UNTESTED |
+| service-registry | ghcr.io latest | 8001 | 58Mi | Running, UNTESTED |
+| websocket-gateway | 8ef0412c | 9010 | 38Mi | Running (4 restarts), UNTESTED |
+
+**ExternalName services:** arangodb, postgres, redis (pointing to `databases` namespace)
+
+#### Environment 2: Plane CE (Project Management)
+- **Location:** `/opt/plane/`
+- **Containers:** 13 (proxy, web, admin, space, live, api, worker, beat-worker, db, redis, mq, minio, mcp-server)
+- **Web UI:** http://65.21.153.235:8083 (UP)
+- **MCP Server:** http://65.21.153.235:8012
+- **Note:** plane-space container is UNHEALTHY
+
+#### Environment 3: SDX Platform
+- **Location:** `/opt/sdx/`
+- **Containers:** 3 (backend:8010, frontend:3010, mcp-server:8011)
+- **Uptime:** 8+ days
+
+### Shared Infrastructure
+- **ArangoDB:** 1 container, port 8529, up 3 months
+- **Nginx:** Reverse proxy on port 80 to K3S ClusterIPs
+
+---
+
+## Network Architecture (Demo Server)
 
 ```
-/srv/flowmaster/
-    dev/                    # Development environment
-        environments/
-            .env.development
-        docker-compose.development.yml
-    demo/                   # Demo environment
-        environments/
-            .env.demo
-        docker-compose.demo.yml
-    staging/                # Staging environment
-        environments/
-            .env.staging
-        docker-compose.staging.yml
-
-/opt/flowmaster-prod/       # Production environment
-    environments/
-        .env.production
-    docker-compose.production.yml
+Internet → Nginx (port 80)
+  ├── / → frontend ClusterIP (10.43.185.219:3000)
+  ├── /api/ → api-gateway ClusterIP (10.43.193.134:9000)
+  └── /ws/ → websocket-gateway ClusterIP (10.43.43.253:9010)
 ```
 
-### Network Architecture
+**WARNING:** ClusterIPs are hardcoded in `/etc/nginx/sites-enabled/flowmaster`. They will change if K3S services are recreated.
 
-```
-Internet
-    |
-    v
-[Server Nginx :443 - SSL Termination]
-    |
-    +---> demo.flow-master.ai    -> localhost:5000 (frontend) / 5001 (API)
-    +---> dev.flow-master.ai     -> localhost:6000 (frontend) / 6001 (API)
-    +---> staging.flow-master.ai -> localhost:4000 (frontend) / 4001 (API)
-    +---> app.flow-master.ai     -> localhost:3002 (frontend) / 3001 (API)
-    |
-    v
-[Docker Compose Services]
-    ├─ Backend (Python FastAPI)
-    └─ Frontend (React + Nginx)
-```
+### Nginx Config Location
+- `/etc/nginx/sites-enabled/flowmaster`
+- Proxy timeouts: 3600s for API (AI operations), 86400s for WebSocket
 
-## Deployment Configuration
+---
 
-### CI/CD Pipeline
+## Deployment Method (CURRENT)
+
+### How Services Were Deployed (Feb 8, 2026)
+Code was deployed via **manual docker pipeline**, NOT via GitLab CI/CD:
+1. Code written locally (macOS arm64)
+2. Docker images built with `--platform linux/amd64`
+3. Images transferred via `docker save | gzip | scp`
+4. Loaded on server via `docker load`
+5. Pushed to K3S local registry (`localhost:30500`)
+6. K3S deployments updated via `kubectl set image`
+
+**Code has NOT been pushed to GitLab repositories.**
+
+### CI/CD Pipeline (Available but not used for current deployment)
 
 **Platform:** GitLab CI/CD
+**Runner:** `flowmaster-demo-runner` v18.8.0, docker executor, privileged, active since 2026-02-03
 
 **Pipeline Stages:**
 ```
 detect-changes -> test -> build -> deploy
 ```
 
-**Timeline:** ~10-15 minutes per deployment
+**Required GitLab CI/CD Variables:**
+- `SSH_PRIVATE_KEY` — SSH key for server access (type: file)
+- `DEMO_SERVER_1_HOST` — Server IP (65.21.153.235)
+- Database vars: `ARANGO_HOST`, `POSTGRES_GLOBAL_HOST`, `REDIS_HOST` + credentials
+- Security vars: `JWT_SECRET`, `ENCRYPTION_KEY`, `SECRET_KEY`
+- API keys: `GEMINI_API_KEY`, `OPENAI_API_KEY`, `OPENROUTER_API_KEY`
 
-### Pipeline Stages Breakdown
+All 14 K3S deployments have `imagePullPolicy: Always`.
 
-#### Stage 1: Detect Changes (30s)
-- Identifies backend and frontend changes
-- Sets `BACKEND_CHANGED` and `FRONTEND_CHANGED` flags
-- Always passes (informational only)
+---
 
-#### Stage 2: Test (2-3 min each)
-- **test-backend:** Python linting (Pylint >= 5.0) + unit tests (pytest)
-- **test-frontend:** TypeScript check + npm build (< 10MB bundle)
-- **security-trivy:** Vulnerability scan (non-blocking)
-- **security-secrets:** Secret detection (blocking)
+## Directory Structure (Demo Server)
 
-#### Stage 3: Build (3-5 min total)
-- **build-backend:** Docker image build using `backend/Dockerfile.production`
-- **build-frontend:** Docker image build using `frontend/Dockerfile.production`
-- **integration-tests:** Full stack test with health checks
+```
+/opt/flowmaster-deployments/    # Legacy staging compose (not actively used)
+    docker-compose.staging.yml
 
-#### Stage 4: Deploy (2-3 min)
-Environment-specific deployment jobs:
-- `deploy-production` (manual trigger only)
-- `deploy-staging`
-- `deploy-demo`
-- `deploy-development`
+/opt/sdx/                       # SDX deployment (3 containers)
+    docker-compose.yml
 
-### Deployment Process
+/opt/plane/                     # Plane CE (13 containers)
+    docker-compose.yaml
 
-1. Developer pushes to branch (e.g., `staging`)
-2. GitLab triggers pipeline
-3. Code goes through detect-changes, test, and build stages
-4. SSH to server via deployment job
-5. Pull latest code from branch
-6. Stop existing containers (`docker compose down`)
-7. Start new containers with build (`docker compose up -d --build`)
-8. Wait for health checks to pass
-9. Verify containers running
-
-### Required GitLab CI/CD Variables
-
-**Connection Variables:**
-- `SSH_PRIVATE_KEY` - SSH key for server access
-- `SERVER_HOST` - Server IP (91.98.159.56)
-- `DEPLOY_PATH` - Deployment directory path (per environment)
-- `APP_URL` - Application URL (per environment)
-
-**Database Variables:**
-- `ARANGO_HOST`, `ARANGO_PORT` (8529), `ARANGO_USER`, `ARANGO_PASSWORD`, `ARANGO_DB`
-- `POSTGRES_GLOBAL_HOST`, `POSTGRES_GLOBAL_PORT` (5432), `POSTGRES_GLOBAL_USER`, `POSTGRES_GLOBAL_PASSWORD`, `POSTGRES_GLOBAL_DB`
-- `REDIS_HOST`, `REDIS_PORT` (6379), `REDIS_PASSWORD`
-
-**Security Variables:**
-- `JWT_SECRET` - JWT signing secret
-- `ENCRYPTION_KEY` - Data encryption key
-- `SECRET_KEY` - Application secret key
-
-**API Keys:**
-- `GEMINI_API_KEY` - Google Gemini API key
-- `OPENAI_API_KEY` - OpenAI API key
-- `OPENROUTER_API_KEY` - OpenRouter API key
-
-## Infrastructure Requirements
-
-### Docker Configuration
-
-#### Backend Service
-
-**Base Image:** python:3.11-slim (multi-stage build)
-
-**Key Specifications:**
-- Health check: `curl http://localhost:8000/api/health`
-- Health check interval: 30s, timeout: 10s, retries: 3, start period: 40s
-- Runs as non-root user: `appuser`
-- Workers: 4 (uvicorn)
-- Port exposure: 8000 (internal)
-
-**Multi-stage Build:**
-- Builder stage: Installs gcc, g++, libpq-dev for compilation
-- Runtime stage: Includes libpq5, curl; copies packages from builder
-
-#### Frontend Service
-
-**Base Image:** node:20-alpine (builder) + nginx:alpine (serve)
-
-**Key Specifications:**
-- Health check: `wget http://localhost:80/`
-- Health check interval: 30s, timeout: 3s, retries: 3
-- Port exposure: 80 (internal)
-- Depends on backend service with condition: `service_healthy`
-
-**Build Process:**
-- npm ci for dependency installation
-- npm run build for production bundle
-- Copy built files to `/usr/share/nginx/html`
-
-#### Docker Compose
-
-**Services Relationship:**
-- Frontend depends on backend being healthy
-- Services communicate via Docker network (aliases: backend/frontend)
-- Environment variables loaded from `.env.{environment}` file
-
-**Network Configuration:**
-- Each environment has isolated Docker network
-- Services accessible by service names internally
-- Port mappings expose services to host
-
-### Nginx Configuration
-
-#### Server Nginx (Host-level)
-
-**Purpose:** SSL termination and reverse proxy
-
-**Features:**
-- HTTP to HTTPS redirect (port 80 -> 443)
-- SSL certificates via Let's Encrypt
-- Proxies frontend requests to Docker containers
-- Proxies API requests with 3600s timeout (for AI operations)
-- WebSocket proxy with 86400s timeout (24 hours)
-- Client max body size: 50MB
-
-**Per-domain blocks:**
-```nginx
-# HTTP redirect
-server {
-    listen 80;
-    server_name {domain};
-    return 301 https://$server_name$request_uri;
-}
-
-# HTTPS with SSL
-server {
-    listen 443 ssl http2;
-    server_name {domain};
-    ssl_certificate /etc/letsencrypt/live/{domain}/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/{domain}/privkey.pem;
-}
+/opt/plane-mcp-server/          # Plane MCP Server
+    docker-compose.yml
 ```
 
-#### Container Nginx (Frontend container)
+K3S manages FlowMaster services (not Docker Compose).
 
-**Purpose:** Serve React SPA and proxy API to backend
+---
 
-**Features:**
-- Gzip compression (70-80% size reduction)
-- Security headers (X-Frame-Options, X-Content-Type-Options, X-XSS-Protection)
-- API proxy to backend on `/api/` routes
-- WebSocket proxy on `/ws/` routes
-- SPA routing (try_files for React routing)
+## Production Server (91.99.237.14)
 
-### Technology Stack
+- **URL:** app.flow-master.ai
+- **Status:** UP (HTTP 200)
+- **Deployment:** Docker Compose, `production` branch
+- **SSL:** Let's Encrypt
+- **No SSH access** from local machine
 
-- **CI/CD:** GitLab CI
-- **Container Runtime:** Docker + Docker Compose
-- **Web Server:** Nginx (reverse proxy + static serving)
-- **SSL/TLS:** Let's Encrypt with auto-renewal via certbot
-- **Backend:** Python 3.11 + FastAPI + uvicorn (4 workers)
-- **Frontend:** Node.js 20 + React + Vite (built to static files)
+---
+
+## Staging/Dev Server (91.98.159.56)
+
+- **URLs:** staging.flow-master.ai, dev.flow-master.ai
+- **Status:** DOWN (unreachable, connection timeout)
+- **Deployment:** Docker Compose
+
+---
+
+## Common Troubleshooting Commands
+
+### K3S (Demo Server)
+```bash
+# Check all pods
+kubectl get pods -n flowmaster
+
+# Check specific pod logs
+kubectl logs -n flowmaster deployment/api-gateway --tail 100
+
+# Restart a deployment
+kubectl rollout restart deployment/api-gateway -n flowmaster
+
+# Update image
+kubectl set image deployment/api-gateway api-gateway=localhost:30500/flowmaster/api-gateway:new-tag -n flowmaster
+
+# Check services and ClusterIPs
+kubectl get svc -n flowmaster
+
+# Check resource usage
+kubectl top pods -n flowmaster
+```
+
+### Nginx (Demo Server)
+```bash
+# Test config
+sudo nginx -t
+
+# Reload
+sudo systemctl reload nginx
+
+# View config
+cat /etc/nginx/sites-enabled/flowmaster
+```
+
+### Docker (Demo Server - Plane/SDX)
+```bash
+# Check Plane containers
+docker ps | grep plane
+
+# Check SDX containers
+docker ps | grep sdx
+
+# Check ArangoDB
+docker ps | grep arango
+```
+
+---
 
 ## When to Use This Skill
 
-### Use this skill when:
-
-1. **Deploying FlowMaster applications**
-   - Understanding deployment process and environment setup
-   - Troubleshooting deployment failures
-   - Setting up CI/CD pipelines
-
-2. **Managing production infrastructure**
-   - SSL certificate renewal and management
-   - Port allocation and network configuration
-   - Environment variable configuration
-
-3. **Debugging container issues**
-   - Backend health checks failing
-   - Frontend container startup problems
-   - Docker compose troubleshooting
-
-4. **Scaling or modifying environments**
-   - Adding new environment variables
-   - Adjusting port allocations
-   - Modifying health checks
-
-5. **Performance optimization**
-   - Configuring Nginx compression
-   - Adjusting Docker resource limits
-   - Optimizing build stages
-
-### Common Troubleshooting Commands
-
-```bash
-# Check all FlowMaster containers
-docker ps -a | grep flowmaster
-
-# View backend logs
-docker logs flowmaster-staging-backend --tail 100 -f
-
-# View frontend logs
-docker logs flowmaster-staging-frontend --tail 100 -f
-
-# Check backend health
-docker inspect flowmaster-staging-backend --format='{{.State.Health.Status}}'
-
-# Test health endpoint
-docker exec flowmaster-staging-backend curl -v http://localhost:8000/api/health
-
-# Restart specific environment
-cd /srv/flowmaster/staging
-docker compose -f docker-compose.staging.yml restart
-
-# Full rebuild
-docker compose -f docker-compose.staging.yml down
-docker compose -f docker-compose.staging.yml up -d --build
-
-# Check Nginx configuration
-sudo nginx -t
-
-# Reload Nginx
-sudo systemctl reload nginx
-```
-
-### Pass/Fail Criteria for CI/CD
-
-| Stage | Requirement |
-|-------|-------------|
-| test-backend | Pylint >= 5.0, pytest passes |
-| test-frontend | Build succeeds, bundle < 10MB |
-| security-secrets | No verified secrets found |
-| build-backend | Docker build succeeds |
-| build-frontend | Docker build succeeds |
-| integration-tests | Both backend and frontend health checks pass |
-| deploy | Containers running with healthy status |
-
-### Manual Deployment
-
-When CI/CD fails, manual deployment steps:
-
-```bash
-# SSH to server
-ssh root@91.98.159.56
-
-# Navigate to environment
-cd /srv/flowmaster/staging
-
-# Pull latest code
-git fetch origin
-git checkout staging
-git pull origin staging
-
-# Update environment file
-nano environments/.env.staging
-
-# Rebuild and restart
-docker compose -f docker-compose.staging.yml down
-docker compose -f docker-compose.staging.yml up -d --build
-
-# Verify
-docker ps | grep flowmaster-staging
-docker logs flowmaster-staging-backend --tail 50
-```
-
-### Request Flow Examples
-
-**Frontend Request:**
-```
-User Browser
-    |
-    v
-https://staging.flow-master.ai/dashboard
-    |
-    v
-[Server Nginx :443]
-    | SSL termination
-    | proxy_pass http://127.0.0.1:4000
-    v
-[Container frontend :4000->80]
-    |
-    v
-[Container Nginx]
-    | try_files -> /index.html
-    v
-React SPA handles /dashboard route
-```
-
-**API Request:**
-```
-User Browser
-    |
-    v
-https://staging.flow-master.ai/api/users
-    |
-    v
-[Server Nginx :443]
-    | SSL termination
-    | proxy_pass http://127.0.0.1:4001
-    v
-[Container backend :4001->8000]
-    |
-    v
-FastAPI handles /api/users
-```
+1. **Deploying FlowMaster** — understanding K3S cluster, image pipeline
+2. **Managing infrastructure** — nginx, SSL, port allocation
+3. **Debugging container issues** — pod logs, restarts, ClusterIP changes
+4. **CI/CD pipeline work** — GitLab runner, deployment jobs
+5. **Server access** — SSH patterns, directory structure

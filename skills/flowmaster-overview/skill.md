@@ -6,194 +6,184 @@ disable-model-invocation: false
 
 # FlowMaster Microservices Platform Overview
 
-## High-Level System Description
+> **SNAPSHOT: 2026-02-08 11:00 Dubai Time (07:00 UTC) — likely changing soon**
 
-FlowMaster is a comprehensive **microservices-based business process automation platform** that enables organizations to design, deploy, and manage sophisticated workflows with AI integration. The platform combines visual process design, intelligent document processing, automated workflow execution, and real-time monitoring capabilities.
+## Executive Summary
 
-### Core Value Proposition
-- **Visual Process Design**: Drag-and-drop BPMN-style process editor using ReactFlow
-- **AI-Powered Intelligence**: LLM-powered document parsing and process extraction
-- **Automated Execution**: State machine-based workflow orchestration with human-in-the-loop capabilities
-- **Real-Time Monitoring**: WebSocket-based live event streaming and dashboards
-- **Enterprise Ready**: Multi-tenant support with comprehensive task management and escalations
+FlowMaster is a **microservices-based business process automation platform** for designing, executing, and monitoring workflows with AI integration. As of Feb 8 2026, **29 services are deployed and running** on a K3S Kubernetes cluster (demo server 65.21.153.235), covering all 79 requirements (R01-R79). Code is deployed but **ALL services are UNTESTED** — no integration, e2e, or health check testing has been performed.
 
-## Core Concepts and Terminology
+**Source Control**: GitLab `flow-master` group (primary), mirrored to GitHub `HCB-Consulting-ME`.
+**Code locations**: ~/projects/documentation (stale copies), ~/projects/flowmaster/ (working dir, not a git repo).
 
-### Key Entities
+---
 
-**Process Definition**: A BPMN-style workflow template stored in ArangoDB. Defines the complete flow with nodes (steps) and edges (connections). Has lifecycle states: draft, published, archived.
+## Deployed Services (29 Running Pods — K3S)
 
-**Process Execution (Instance)**: A running instance of a process definition. Tracks current state, progress, input/output data, and execution history. Can be paused, resumed, or cancelled.
+### Core Business Logic (13 services)
 
-**Node**: An individual step in a process. Types include:
-- **Event nodes** (start/end): Entry and exit points
-- **Action nodes**: Automated tasks
-- **Human nodes**: Manual tasks requiring human interaction
-- **Decision nodes**: Gateways for conditional branching
-- **Timer nodes**: Time-based triggers
-- **Script nodes**: Custom code execution
-- **Subprocess nodes**: Child process calls
+| Service | Port | Tech | Status |
+|---------|------|------|--------|
+| **Process Design** | 9003 | Python/FastAPI | Running, UNTESTED |
+| **Execution Engine** | 9005 | Python/FastAPI | Running, UNTESTED |
+| **Human Task** | 9006 | Python/FastAPI | Running, UNTESTED |
+| **AI Agent Orchestration** | 9006 | Python/FastAPI | Running, UNTESTED |
+| **Document Intelligence** | 9002 | Python/FastAPI | Running, UNTESTED |
+| **Authentication** | 8002 | Python/FastAPI | Running, UNTESTED |
+| **API Gateway** | 9000 | Python/FastAPI | Running, UNTESTED |
+| **Event Bus** | 9013 | Python/FastAPI+Kafka | Running, UNTESTED |
+| **WebSocket Gateway** | 9010 | Node.js/TypeScript | Running (4 restarts), UNTESTED |
+| **Notification** | 9009 | Python/FastAPI | Running, UNTESTED |
+| **Scheduling** | 9008 | Python/FastAPI | Running, UNTESTED |
+| **Service Registry** | 8001 | Python/FastAPI | Running, UNTESTED |
+| **SSO** | — | Integrated w/ Auth | Working on demo |
 
-**Edge**: A connection between nodes representing sequence flow. Can be conditional or default, with expressions for decision logic.
+### New Services (6, built Feb 2026)
 
-**Human Task**: A workflow step requiring human intervention. Has lifecycle: pending → claimed → in_progress → completed. Includes escalation support for manager review.
+| Service | Port | Requirements | Status |
+|---------|------|-------------|--------|
+| **Process Analytics** | 9014 | R48-R50 | Running, UNTESTED |
+| **External Integration** | 9014 | R51-R53 | Running, UNTESTED |
+| **MCP Server** | 9000 | R54-R56 | Running, UNTESTED |
+| **Legal Entity** | 8014 | R66-R68 | Running, UNTESTED |
+| **Business Rules Engine** | 8018 | R69-R72 | Running, UNTESTED |
+| **BAC Marketplace** | 9015 | R73-R76 | Running, UNTESTED |
 
-**Schedule**: A time-based trigger using cron expressions (e.g., daily, weekly). Automatically executes processes at specified times with input data.
+### Rebuilt/Revived Services (3)
 
-**Event**: Messages published asynchronously via Event Bus (Kafka). Enable loose coupling between services (e.g., task.created, execution.completed).
+| Service | Port | Requirements | Status |
+|---------|------|-------------|--------|
+| **Agent Service** | 9016 | R36-R47 | Running, UNTESTED |
+| **Prompt Engineering** | 8012 | R39-R41 | Running, UNTESTED |
+| **Knowledge Hub** | 8009 | R42-R46 | Running, UNTESTED |
 
-**Notification**: In-app messages sent to users about workflow activities. Support preferences per user and notification type.
+### Frontend & Companion Apps (7)
 
-### Architectural Principles
+| Service | Port | Requirements | Status |
+|---------|------|-------------|--------|
+| **Frontend (Next.js)** | 3000 | — | Running, UNTESTED |
+| **Engage App** | 3001 | R25-R29, R45 | Running, UNTESTED |
+| **Manager App** | 3001 | R30-R33 | Running, UNTESTED |
+| **Process Designer** | 3002 | R77-R79 | Running, UNTESTED |
+| **DXG Service** | 9011 | R34-R35 | Running, UNTESTED |
+| **Process Views** | 8019 | R57-R59 | Running, UNTESTED |
+| **Process Versioning** | 8020 | R60-R62 | Running, UNTESTED |
+| **Process Linking** | 8021 | R63-R65 | Running, UNTESTED |
 
-**Microservices Pattern**: Each capability is an independent service with its own database, allowing independent scaling and deployment.
+### Data Intelligence
+- Scaled to 0 replicas (replaced by Process Analytics)
 
-**Event-Driven Architecture**: Services communicate asynchronously via Event Bus (Kafka) for high-throughput scenarios.
+---
 
-**Real-Time Streaming**: WebSocket connections push execution state changes to frontend for live dashboards.
+## Architecture & Data Patterns
 
-**State Machine Execution**: Execution Engine uses state machines for deterministic, resumable workflow execution with compensation (saga pattern).
+### Deployment Model (CURRENT)
+**K3S Kubernetes** on demo server (65.21.153.235):
+- 29 pods in `flowmaster` namespace
+- Local Docker registry: `localhost:30500`
+- Images deployed via `docker save/gzip/scp/docker load` (NOT via CI/CD pipelines)
+- Code NOT pushed to GitLab repos yet
 
-**Multi-Tenancy**: All services support tenant isolation via tenant_id in requests and data.
+### Network Architecture (Demo Server)
+```
+Internet → Nginx (port 80) → K3S ClusterIPs
+  / → frontend (10.43.185.219:3000)
+  /api/ → api-gateway (10.43.193.134:9000)
+  /ws/ → websocket-gateway (10.43.43.253:9010)
+```
+WARNING: ClusterIPs are hardcoded in nginx config, will change if services recreated.
 
-## Architecture Patterns
+### Synchronous Communication
+**HTTP REST via API Gateway** (port 9000):
+- Frontend → API Gateway → Services
+- Service-to-service calls (sync where needed)
+- JWT validation at gateway + service level
 
-### Service Topology
+### Asynchronous Communication
+**Kafka Event Bus**:
+- Services publish domain events (e.g., `task.created`, `execution.completed`)
+- Event Bus routes via subscriptions (webhook delivery)
 
-The platform consists of **12 microservices** organized into layers:
-
-**Presentation Layer**
-- **Frontend** (React + Vite): User interface at port 5173
-
-**API Layer**
-- **API Gateway** (FastAPI): Central routing, auth, rate limiting at port 9000
-- **WebSocket Gateway** (Node.js): Real-time events at port 9010
-
-**Business Logic Services**
-- **Process Design** (9003): BPMN definitions, nodes, edges
-- **Execution Engine** (9005): Workflow orchestration and state management
-- **Human Task** (9006): Task management with escalations
-- **Scheduling** (9008): Cron-based process triggering
-- **Notification** (9011): In-app notifications
-- **Document Intelligence** (9002): AI document parsing and process extraction
-- **AI Agent Service** (9001): LLM orchestration and tool execution
-
-**Infrastructure Services**
-- **Event Bus** (9013): Kafka-based asynchronous messaging
-- **ArangoDB** (8529): Graph database for processes/tasks
-- **PostgreSQL** (5432+): Relational storage for executions/notifications/schedules
-- **Redis** (6379): Caching and pub/sub
-
-### Communication Patterns
-
-**Synchronous (HTTP REST)**
-- Frontend ↔ API Gateway ↔ Services
-- Service-to-service direct calls (e.g., Execution Engine calls Human Task)
-- Request-response pattern with timeouts
-
-**Asynchronous (Event Bus)**
-- Services publish domain events to Kafka topics
-- Event Bus routes to subscribed services via webhooks
-- Example: task.completed event triggers notifications and execution continuations
-
-**Real-Time (Redis Pub/Sub)**
+### Real-Time Streaming
+**WebSocket (Socket.io) + Redis**:
+- WebSocket Gateway (port 9010)
 - Services publish to Redis channels
-- WebSocket Gateway subscribes and broadcasts to connected clients
-- Zero-latency updates for live dashboards
+- Gateway broadcasts to connected clients
 
-### Data Flow Example: Task Assignment
+### Databases
+- **ArangoDB**: Process definitions, task graphs (shared container, port 8529, 3 months uptime)
+- **PostgreSQL**: Auth, executions, scheduling, notifications
+- **Redis**: Caching, pub/sub, session management
 
-1. Execution Engine encounters human task node
-2. Execution Engine → HTTP POST to Human Task Service `/api/v1/tasks`
-3. Human Task Service creates task in ArangoDB
-4. Human Task Service publishes `task.created` event to Event Bus
-5. Human Task Service publishes to Redis `backend:task:events` channel
-6. Event Bus webhook delivers event to Notification Service
-7. WebSocket Gateway receives Redis event and broadcasts to frontend
-8. Frontend updates task list in real-time
+---
 
-## Key Features and Capabilities
+## Key Concepts
 
-### Visual Process Design
-- **Drag-and-drop editor** with node palette
-- **BPMN 2.0 compliance** with start/end events, gateways, and subprocesses
-- **Node configuration** with custom properties and metadata
-- **Template library** for reusable process patterns
-- **Import/Export** of processes in BPMN format
-- **Process versioning** with archived historical versions
+### Process Explorer vs. Process Designer
+- **Process Explorer**: Full experience - browse processes, view analytics, manage data
+- **Process Designer**: Visual drag-and-drop editor (R77) that sits INSIDE the Explorer
 
-### AI-Powered Document Processing
-- **Multi-format support**: PDF, DOCX, TXT, MD, HTML, RTF
-- **Intelligent text extraction** with chunking and embeddings
-- **LLM-powered process extraction** from procedural documents
-- **Subprocess detection** for nested process hierarchies
-- **Semantic search** across uploaded documents
-- **Confidence scoring** for extracted processes
+### Architectural Decisions (D1-D18)
+- **D1**: SSO KEEP (working on demo server)
+- **D3**: Notification + Communication MERGE
+- **D4**: AI Agent Service = Agent Orchestration
+- **D5**: Learning Management → Agent Service (BUILT)
+- **D6**: Prompt Engineering KEEP SEPARATE (BUILT)
+- **D7**: Internal Data Hub = Knowledge Hub (REVIVED)
+- **D8**: Observability SKIP FOR NOW
+- **D9**: Permissions enhancement SKIP FOR NOW
+- **D10**: SDX is MOST CRITICAL integration
+- **D11**: DXG + Engage REPLACE human task execution UI
+- **D12**: Process Explorer ≠ Process Designer
+- **D13**: SDX REST-only internally; MCP via unified FlowMaster MCP Server
+- **D14**: Agent learning from Engage feedback → Knowledge Hub → Agent Service loop
+- **D15**: Process Analytics replaces empty Data Intelligence
+- **D16**: BAC = process marketplace
+- **D17**: Business Rules = first-class DMN-style objects
+- **D18**: Process Designer = Visio-quality drag-and-drop with swimlanes + inline AI
 
-### Automated Workflow Execution
-- **State machine orchestration** for deterministic execution
-- **Parallel and exclusive gateways** for conditional branching
-- **Subprocess calls** with data mapping
-- **Variable resolution** from context and previous nodes
-- **Timeout handling** with retry policies
-- **Saga pattern** for compensating actions on failure
-- **Execution pause/resume** with state persistence
+---
 
-### Human-in-the-Loop Management
-- **Task assignment** to users or roles
-- **Task claiming** with concurrent access control
-- **Priority levels** (low/medium/high/critical)
-- **Due dates** with reminders
-- **Manager escalations** for decisions outside automation
-- **Task comments** for collaboration
-- **Reassignment** capabilities
+## Deployment Servers
 
-### Intelligent Scheduling
-- **Cron expression support** for flexible scheduling
-- **Timezone-aware** scheduling
-- **Execution history** tracking
-- **Failed execution handling** with retry
-- **Process input data** per schedule
+| Server | IP | URL | Status (Feb 8) |
+|--------|-----|-----|----------------|
+| **Demo** | 65.21.153.235 | — | UP, K3S, 29 pods |
+| **Production** | 91.99.237.14 | app.flow-master.ai | UP (HTTP 200), Docker Compose |
+| **Staging** | 91.98.159.56 | staging.flow-master.ai | DOWN (unreachable) |
+| **Dev** | 91.98.159.56 | dev.flow-master.ai | DOWN (unreachable) |
 
-### Real-Time Monitoring
-- **Live execution canvas** showing node progress
-- **WebSocket streaming** of state changes
-- **Execution history** with complete event audit trail
-- **Node-level debugging** information
-- **Performance metrics** (duration, throughput)
-- **Error tracking** with stack traces
+---
 
-### Multi-Tenant Support
-- **Tenant isolation** at data and API level
-- **Per-tenant quotas** and rate limiting
-- **Tenant-specific configurations** (LLM models, escalation rules)
-- **Data segregation** using tenant_id foreign keys
+## Tech Stack Summary
 
-### Notification System
-- **Event-triggered notifications** (task assigned, process completed)
-- **User preferences** (enable/disable by type)
-- **In-app notification center** with read status
-- **Unread count tracking**
-- **Notification archival**
+**Backend**: 11/13 core services Python/FastAPI, 2 Node.js/TypeScript
+**Frontend**: Next.js, React, TypeScript, Radix UI (shadcn/ui), TailwindCSS
+**Source Control**: GitLab (primary), GitHub (mirror)
+**Container Orchestration**: K3S (demo), Docker Compose (prod/staging/dev)
+**CI/CD**: GitLab CI, runner `flowmaster-demo-runner` v18.8.0
+
+---
+
+## Requirements Coverage (79 total)
+
+All 79 requirements (R01-R79) have code written and deployed as Docker images.
+**NONE are integration-tested.** See deployment-snapshot-20260208.md for full mapping.
+
+---
 
 ## When to Use This Skill
 
-This skill serves as the **primary entry point** for understanding FlowMaster. Reference it when:
-
-1. **Learning the System**: New to FlowMaster and need architecture overview
-2. **Planning Integration**: Designing APIs or workflows with FlowMaster
-3. **Understanding Capabilities**: Determining what features suit your use case
-4. **Troubleshooting Design Issues**: Process design problems or architectural questions
-5. **Communicating with Stakeholders**: Need high-level system explanations
+1. **System Architecture**: Understanding service topology, communication patterns
+2. **Service Dependencies**: Which services interact and how
+3. **Technology Decisions**: Tech stack, databases, messaging
+4. **Integration Planning**: Designing APIs or workflows
+5. **Deployment Status**: What's running where
+6. **Stakeholder Communication**: High-level system explanations
 
 ### Related Skills
-- `flowmaster-api-gateway` - API routing and request handling
-- `flowmaster-execution-engine` - Workflow orchestration details
-- `flowmaster-human-tasks` - Task management API and lifecycle
-- `flowmaster-document-intelligence` - AI document processing
-- `flowmaster-event-bus` - Event publishing and subscriptions
-
-### Quick Links
-- **Service Ports**: Frontend (5173), API Gateway (9000), WebSocket (9010)
-- **Databases**: ArangoDB (8529), PostgreSQL (5432), Redis (6379)
-- **Documentation**: FlowMaster Complete Documentation v2.0 (January 2026)
+- `flowmaster-backend` — API endpoints, service contracts
+- `flowmaster-server` — Infrastructure, deployment, CI/CD
+- `flowmaster-frontend` — UI components, patterns
+- `flowmaster-database` — ArangoDB schema, collections
+- `flowmaster-environment` — Service env vars, ports, config
+- `flowmaster-tools` — MCP tools, integrations, SDX
