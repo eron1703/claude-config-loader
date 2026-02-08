@@ -113,6 +113,27 @@ Each identified gap becomes a spec suitable for an agent:
 - When one agent completes, launch additional new agents if work exists
 - If agents get stuck, launch helper agents to unstick them or re-task them
 
+### Agent Execution Speed (CRITICAL - ENFORCED)
+**Max agent wait time: 3 minutes** — If an agent hasn't produced measurable output in 3 minutes, it's stuck and must be killed + re-tasked immediately.
+
+**Parallel-first execution (MANDATORY):**
+- Always launch 5+ agents minimum when parallel work is available
+- Never wait for one agent before launching others — launch ALL agents simultaneously
+- Do not serialize work that can run in parallel
+- Lack of parallelism = wasted time
+
+**Timeouts (MANDATORY for all agents):**
+- SSH commands: max 15 seconds
+- Docker builds: max 5 minutes
+- Tests: max 3 minutes
+- Any agent exceeding its time budget must be killed and re-tasked with adjusted scope
+
+**Verification + fix agents (PARALLEL):**
+- Always launch verification agents alongside fix agents
+- Do not wait for fix to complete before starting verification
+- Parallel verification catches issues faster
+- Verification agents run independently with same context as fix agents
+
 ### Model Selection
 - **Haiku** for straightforward implementation tasks (coding, config, deployments)
 - **Sonnet** for complex reasoning (debugging, architecture analysis, multi-service integration)
