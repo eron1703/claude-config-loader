@@ -2,14 +2,23 @@
 
 ## Quick Connect
 
-**Interactive shell:**
+**Easiest way (just type this):**
 ```bash
-ssh demo-server-root "kubectl exec -it -n claude-pod deployment/claude-pod -- bash"
+claude-pod              # Interactive shell
+claude-pod "command"    # Run single command
 ```
 
-**Run single command:**
+**Manual SSH (if alias not available):**
 ```bash
+ssh demo-server-root "kubectl exec -it -n claude-pod deployment/claude-pod -- bash"
 ssh demo-server-root "kubectl exec -n claude-pod deployment/claude-pod -- <command>"
+```
+
+**Cross-platform script (Windows/Mac/Linux):**
+```bash
+# From repo root:
+./connect-pod.sh                    # Interactive
+./connect-pod.sh "test-rig --help"  # Run command
 ```
 
 ## Deployment Info
