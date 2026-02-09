@@ -221,7 +221,7 @@ Plane CE v1.2.1 is deployed on the demo server as the team's project management 
 - **MCP Server**: http://65.21.153.235:8012
 - **Admin**: admin@flowmaster.dev / FlowMaster2026!
 - **Workspace**: `flowmaster` | **Project**: `FM` (FlowMaster)
-- **API Key**: `plane_api_f4184086bfe845f2849b6eebb6be052d`
+- **API Key**: `plane_api_b91c8c1ffd1448d0bd0130bbc279b124`
 
 ### MCP Server Integration
 The Plane MCP Server (makeplane/plane-mcp-server) provides 55+ tools via Streamable HTTP with SSE transport.
