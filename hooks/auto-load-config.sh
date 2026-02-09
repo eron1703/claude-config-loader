@@ -11,7 +11,7 @@ if [ -f "$CONFIG_LOADER_PATH_FILE" ]; then
 else
     SOURCE_DIR=~/.claude/skills
 fi
-ALWAYS_LOAD=(core-rules supervisor-methodology supervisor-timer supervisor-agent-launch)
+ALWAYS_LOAD=(core-rules supervisor)
 
 # --- Health Check ---
 EXPECTED_SKILLS=40
@@ -37,11 +37,8 @@ echo ""
 echo "# Available Skills (MECE Structure)"
 echo ""
 echo "**Always Loaded:**"
-echo "- core-rules (supervisor methodology, autonomous operation, communication, git safety, quality gates)"
-echo ""
-echo "**Supervisor Skills (always loaded):**"
-echo "- supervisor-timer - Timer agent protocol (ALWAYS have one running)"
-echo "- supervisor-agent-launch - Agent prompt templates, role-based skill loading"
+echo "- core-rules (communication, quality, context) - ALL agents"
+echo "- supervisor (delegation, timer, planning) - supervisors only"
 echo ""
 echo "**Supervisor Skills (on demand):**"
 echo "- supervisor-conversation - Resume pattern, agent monitoring, TaskOutput peek"
