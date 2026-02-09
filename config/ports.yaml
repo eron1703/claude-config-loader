@@ -94,6 +94,14 @@ claude-config-loader:
   repo: "See ~/.claude/.config-loader-path for install location"
   notes: "No services, configuration files only"
 
+claude-pod:
+  health: 8013
+  litellm-proxy-api: 4000
+  litellm-proxy-health: 8000
+  description: "Containerized Claude Code with LiteLLM proxy for cost-effective AI routing"
+  repo: "https://gitlab.com/flow-master/claude-pod"
+  notes: "K3S deployment on demo-server. Routes Claude API calls to Grok-3 and Gemini 2.5 Flash. Health endpoint on 8013."
+
 # === ARCHIVED / DOCUMENTATION PROJECTS ===
 
 documentation:
@@ -230,7 +238,10 @@ guidelines:
 
 # === QUICK REFERENCE BY PORT ===
 
+  "4000": "claude-pod (litellm-proxy API, K8S internal only)"
+  "8000": "claude-pod (litellm-proxy health, K8S internal only)"
   "8012": "plane (MCP server, demo server only)"
+  "8013": "claude-pod (health endpoint, K8S internal only)"
   "8083": "plane (web UI proxy, demo server only)"
 by_port:
   "3000": "commander (backend), flowmaster (frontend), documentation (frontend)"
@@ -242,6 +253,7 @@ by_port:
   "3006": "dxg (frontend)"
   "3010": "engage (frontend)"
   "3011": "sdx (frontend)"
+  "4000": "claude-pod (litellm-proxy API, K8S internal)"
   "5173": "commander (frontend container internal)"
   "5432": "engage (postgres), documentation (postgres-core)"
   "5433": "documentation (postgres-user)"
@@ -255,6 +267,7 @@ by_port:
   "6380": "flowmaster (employee-redis)"
   "6381": "dxg (dxg-redis)"
   "6383": "flowmaster (flowmaster-message-redis)"
+  "8000": "claude-pod (litellm-proxy health, K8S internal)"
   "8001": "documentation (service-registry), flowmaster (employee-app-backend)"
   "8002": "documentation (auth-service), flowmaster (backend)"
   "8004": "flowmaster (guard-mobile-backend)"
@@ -263,6 +276,8 @@ by_port:
   "8009": "documentation (data-hub-service)"
   "8010": "documentation (integration-hub-service), sdx (backend)"
   "8011": "sdx (mcp-server)"
+  "8012": "plane (MCP server, demo server only)"
+  "8013": "claude-pod (health endpoint, K8S internal)"
   "8020": "engage (mcp-server)"
   "8021": "engage (collaboration)"
   "8022": "engage (preferences)"
