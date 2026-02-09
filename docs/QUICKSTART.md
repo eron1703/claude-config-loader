@@ -6,14 +6,14 @@
 ```bash
 # Create symlinks (changes sync automatically)
 mkdir -p ~/.claude/skills
-ln -s ~/projects/claude-config-loader/skills/* ~/.claude/skills/
+ln -s $(cat ~/.claude/.config-loader-path)/skills/* ~/.claude/skills/
 ```
 
 ### Install Hook (Optional)
 ```bash
 # Create hook directory
 mkdir -p ~/.claude/hooks
-ln -s ~/projects/claude-config-loader/hooks/load-context.sh ~/.claude/hooks/load-context.sh
+ln -s $(cat ~/.claude/.config-loader-path)/hooks/load-context.sh ~/.claude/hooks/load-context.sh
 
 # Add to settings
 cat > ~/.claude/settings.json << 'EOF'
@@ -39,7 +39,7 @@ You should see your port configuration!
 Edit these files to match your environment:
 
 ```bash
-cd ~/projects/claude-config-loader/config
+cd $(cat ~/.claude/.config-loader-path)/config
 
 # Essential
 vim ports.yaml        # Add your project ports

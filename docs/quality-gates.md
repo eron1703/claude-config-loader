@@ -40,7 +40,7 @@ Comprehensive pre-push hook that:
 
 One-command installation for any project:
 ```bash
-~/projects/claude-config-loader/config/hooks/install-quality-hook.sh
+$(cat ~/.claude/.config-loader-path)/config/hooks/install-quality-hook.sh
 ```
 
 ## Branch-Specific Rules
@@ -188,7 +188,7 @@ Mode: RELAXED (development branch)
 ### Install in Any Project
 ```bash
 cd ~/projects/your-project
-~/projects/claude-config-loader/config/hooks/install-quality-hook.sh
+$(cat ~/.claude/.config-loader-path)/config/hooks/install-quality-hook.sh
 ```
 
 ### Bypass Hook (Emergency)

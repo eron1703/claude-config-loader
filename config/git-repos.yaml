@@ -142,7 +142,7 @@ repositories:
     github_url: https://github.com/eron1703/claude-config-loader
     gitlab_url: https://gitlab.com/flow-master/claude-config-loader
     description: "Claude Code configuration management with skills system"
-    local_path: ~/projects/claude-config-loader
+    local_path: "See ~/.claude/.config-loader-path for install location"
     primary_branch: main
     status: active
     containers: none

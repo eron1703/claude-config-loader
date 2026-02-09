@@ -7,7 +7,7 @@ disable-model-invocation: false
 # Infrastructure Information
 
 ## Servers
-!`cat ~/projects/claude-config-loader/config/servers.yaml`
+!`cat "$(cat ~/.claude/.config-loader-path)/config/servers.yaml"`
 
 Use this information when:
 - Deploying applications

@@ -5,7 +5,12 @@
 # Loads skills list + core behavioral rules on EVERY message
 
 SKILLS_DIR=~/.claude/skills
-SOURCE_DIR=~/projects/claude-config-loader/skills
+CONFIG_LOADER_PATH_FILE=~/.claude/.config-loader-path
+if [ -f "$CONFIG_LOADER_PATH_FILE" ]; then
+    SOURCE_DIR="$(cat "$CONFIG_LOADER_PATH_FILE")/skills"
+else
+    SOURCE_DIR=~/.claude/skills
+fi
 ALWAYS_LOAD=(core-rules supervisor-methodology supervisor-timer supervisor-agent-launch)
 
 # --- Health Check ---
@@ -20,7 +25,7 @@ done
 
 if [ ${#MISSING[@]} -gt 0 ]; then
     echo "[CONFIG] WARNING: Missing always-loaded skills: ${MISSING[*]}"
-    echo "[CONFIG] Run: cd ~/.claude/skills && ln -sf ~/projects/claude-config-loader/skills/<name> ."
+    echo "[CONFIG] Run install.sh from the claude-config-loader directory to fix missing skills."
 fi
 if [ "$ACTUAL_SKILLS" -lt 30 ]; then
     echo "[CONFIG] WARNING: Only $ACTUAL_SKILLS skills found (expected ~$EXPECTED_SKILLS). Symlinks may be broken."

@@ -91,7 +91,7 @@ plane:
 
 claude-config-loader:
   description: "Claude Code configuration management"
-  repo: ~/projects/claude-config-loader
+  repo: "See ~/.claude/.config-loader-path for install location"
   notes: "No services, configuration files only"
 
 # === ARCHIVED / DOCUMENTATION PROJECTS ===

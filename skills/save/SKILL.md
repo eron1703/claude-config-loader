@@ -12,12 +12,12 @@ user-invocable: true
 
 ## Configuration Files
 
-- **Repositories** → `~/projects/claude-config-loader/config/git-repos.yaml`
-- **Servers** → `~/projects/claude-config-loader/config/servers.yaml`
-- **Ports** → `~/projects/claude-config-loader/config/ports.yaml`
-- **Databases** → `~/projects/claude-config-loader/config/databases.yaml`
-- **CI/CD** → `~/projects/claude-config-loader/config/cicd.yaml`
-- **Environment** → `~/projects/claude-config-loader/config/environment.yaml`
+- **Repositories** → `$(cat ~/.claude/.config-loader-path)/config/git-repos.yaml`
+- **Servers** → `$(cat ~/.claude/.config-loader-path)/config/servers.yaml`
+- **Ports** → `$(cat ~/.claude/.config-loader-path)/config/ports.yaml`
+- **Databases** → `$(cat ~/.claude/.config-loader-path)/config/databases.yaml`
+- **CI/CD** → `$(cat ~/.claude/.config-loader-path)/config/cicd.yaml`
+- **Environment** → `$(cat ~/.claude/.config-loader-path)/config/environment.yaml`
 
 ## Process
 

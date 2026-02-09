@@ -171,7 +171,7 @@ servers:
       workspace:
         name: "flowmaster"
         project: "FM (FlowMaster)"
-      api_key: "plane_api_f4184086bfe845f2849b6eebb6be052d"
+      api_key: "plane_api_b91c8c1ffd1448d0bd0130bbc279b124"
       users:
         - "admin@flowmaster.dev"
         - "benjamin@flowmaster.dev"

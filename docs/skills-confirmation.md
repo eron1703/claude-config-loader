@@ -30,7 +30,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/benjaminhippler/.claude/hooks/auto-load-config.sh"
+            "command": "$HOME/.claude/hooks/auto-load-config.sh"
           }
         ]
       }
