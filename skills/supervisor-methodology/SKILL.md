@@ -308,6 +308,6 @@ Following supervisor methodology + granular planning
 ---
 
 ## Reference
-- Source: ~/projects/claude-config-loader/
-- Config: ~/projects/claude-config-loader/config/supervisor-methodology.md
-- Skills: ~/projects/claude-config-loader/skills/
+- Source: See `~/.claude/.config-loader-path` for install location
+- Config: `$(cat ~/.claude/.config-loader-path)/config/`
+- Skills: `$(cat ~/.claude/.config-loader-path)/skills/`

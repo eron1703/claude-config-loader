@@ -6,7 +6,7 @@ disable-model-invocation: false
 
 # Git Repositories
 
-!`cat ~/projects/claude-config-loader/config/git-repos.yaml`
+!`cat "$(cat ~/.claude/.config-loader-path)/config/git-repos.yaml"`
 
 Use this information when:
 - Cloning repositories

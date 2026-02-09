@@ -6,7 +6,7 @@ disable-model-invocation: false
 
 # CI/CD Configuration
 
-!`cat ~/projects/claude-config-loader/config/cicd.yaml`
+!`cat "$(cat ~/.claude/.config-loader-path)/config/cicd.yaml"`
 
 Use this information when:
 - Setting up CI/CD pipelines

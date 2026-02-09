@@ -9,19 +9,19 @@
 # Link individual skills to Claude's global skills directory
 mkdir -p ~/.claude/skills
 
-ln -s ~/projects/claude-config-loader/skills/ports ~/.claude/skills/ports
-ln -s ~/projects/claude-config-loader/skills/servers ~/.claude/skills/servers
-ln -s ~/projects/claude-config-loader/skills/databases ~/.claude/skills/databases
-ln -s ~/projects/claude-config-loader/skills/rules ~/.claude/skills/rules
-ln -s ~/projects/claude-config-loader/skills/repos ~/.claude/skills/repos
-ln -s ~/projects/claude-config-loader/skills/cicd ~/.claude/skills/cicd
-ln -s ~/projects/claude-config-loader/skills/project ~/.claude/skills/project
+ln -s $(cat ~/.claude/.config-loader-path)/skills/ports ~/.claude/skills/ports
+ln -s $(cat ~/.claude/.config-loader-path)/skills/servers ~/.claude/skills/servers
+ln -s $(cat ~/.claude/.config-loader-path)/skills/databases ~/.claude/skills/databases
+ln -s $(cat ~/.claude/.config-loader-path)/skills/rules ~/.claude/skills/rules
+ln -s $(cat ~/.claude/.config-loader-path)/skills/repos ~/.claude/skills/repos
+ln -s $(cat ~/.claude/.config-loader-path)/skills/cicd ~/.claude/skills/cicd
+ln -s $(cat ~/.claude/.config-loader-path)/skills/project ~/.claude/skills/project
 ```
 
 **Option B: Copy**
 ```bash
 mkdir -p ~/.claude/skills
-cp -r ~/projects/claude-config-loader/skills/* ~/.claude/skills/
+cp -r $(cat ~/.claude/.config-loader-path)/skills/* ~/.claude/skills/
 ```
 
 **Verify Installation:**
@@ -35,7 +35,7 @@ ls -la ~/.claude/skills/
 **Link the hook:**
 ```bash
 mkdir -p ~/.claude/hooks
-ln -s ~/projects/claude-config-loader/hooks/load-context.sh ~/.claude/hooks/load-context.sh
+ln -s $(cat ~/.claude/.config-loader-path)/hooks/load-context.sh ~/.claude/hooks/load-context.sh
 ```
 
 **Configure settings:**
@@ -57,10 +57,10 @@ cat ~/.claude/settings.json
 
 ### 3. Customize Configuration
 
-Edit the YAML files in `~/projects/claude-config-loader/config/`:
+Edit the YAML files in `$(cat ~/.claude/.config-loader-path)/config/`:
 
 ```bash
-cd ~/projects/claude-config-loader/config
+cd $(cat ~/.claude/.config-loader-path)/config
 
 # Add your ports
 vim ports.yaml
@@ -99,7 +99,7 @@ Since skills use symlinks (Option A), updates are automatic:
 
 1. Edit config files:
    ```bash
-   cd ~/projects/claude-config-loader/config
+   cd $(cat ~/.claude/.config-loader-path)/config
    vim ports.yaml  # Make changes
    ```
 
@@ -121,7 +121,7 @@ Since skills use symlinks (Option A), updates are automatic:
 ls -la ~/.claude/skills/
 
 # If empty, reinstall
-cd ~/projects/claude-config-loader
+cd $(cat ~/.claude/.config-loader-path)
 ln -s $(pwd)/skills/* ~/.claude/skills/
 ```
 
@@ -147,11 +147,11 @@ chmod +x ~/.claude/hooks/load-context.sh
 
 **Solution:**
 ```bash
-# Skills expect files in ~/projects/claude-config-loader/config/
-ls ~/projects/claude-config-loader/config/
+# Skills expect files in $(cat ~/.claude/.config-loader-path)/config/
+ls $(cat ~/.claude/.config-loader-path)/config/
 
 # If files are missing, recreate them from the repository
-cd ~/projects/claude-config-loader
+cd $(cat ~/.claude/.config-loader-path)
 # Check README.md for file structure
 ```
 
@@ -166,7 +166,7 @@ ls -la ~/.claude/skills/
 
 # If broken (red/missing), recreate
 rm ~/.claude/skills/*
-ln -s ~/projects/claude-config-loader/skills/* ~/.claude/skills/
+ln -s $(cat ~/.claude/.config-loader-path)/skills/* ~/.claude/skills/
 ```
 
 ## Advanced Configuration
@@ -178,7 +178,7 @@ You can override global skills in specific projects:
 ```bash
 cd ~/projects/your-project
 mkdir -p .claude/skills
-cp ~/projects/claude-config-loader/skills/rules .claude/skills/
+cp $(cat ~/.claude/.config-loader-path)/skills/rules .claude/skills/
 # Edit .claude/skills/rules/SKILL.md for project-specific overrides
 ```
 

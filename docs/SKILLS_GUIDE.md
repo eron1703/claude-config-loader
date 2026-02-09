@@ -210,7 +210,7 @@ Claude: Deploying to staging following the CI/CD process...
 Skills read from YAML files in `config/`:
 
 ```bash
-cd ~/projects/claude-config-loader/config
+cd $(cat ~/.claude/.config-loader-path)/config
 vim ports.yaml  # Changes immediately available
 ```
 
@@ -221,7 +221,7 @@ Create project-specific overrides:
 ```bash
 cd ~/projects/your-project
 mkdir -p .claude/skills/rules
-cp ~/projects/claude-config-loader/skills/rules/SKILL.md .claude/skills/rules/
+cp $(cat ~/.claude/.config-loader-path)/skills/rules/SKILL.md .claude/skills/rules/
 # Edit to add project-specific rules
 ```
 
@@ -230,8 +230,8 @@ cp ~/projects/claude-config-loader/skills/rules/SKILL.md .claude/skills/rules/
 Follow the pattern:
 
 ```bash
-mkdir -p ~/projects/claude-config-loader/skills/my-skill
-cat > ~/projects/claude-config-loader/skills/my-skill/SKILL.md << 'EOF'
+mkdir -p $(cat ~/.claude/.config-loader-path)/skills/my-skill
+cat > $(cat ~/.claude/.config-loader-path)/skills/my-skill/SKILL.md << 'EOF'
 ---
 name: my-skill
 description: When to use this skill
@@ -240,11 +240,11 @@ disable-model-invocation: false
 
 # My Skill Content
 
-!`cat ~/projects/claude-config-loader/config/my-config.yaml`
+!`cat $(cat ~/.claude/.config-loader-path)/config/my-config.yaml`
 EOF
 
 # Link to global skills
-ln -s ~/projects/claude-config-loader/skills/my-skill ~/.claude/skills/my-skill
+ln -s $(cat ~/.claude/.config-loader-path)/skills/my-skill ~/.claude/skills/my-skill
 ```
 
 ## Token Efficiency
@@ -296,7 +296,7 @@ ls ~/.claude/skills/
 cat ~/.claude/skills/ports/SKILL.md
 
 # Check config file
-cat ~/projects/claude-config-loader/config/ports.yaml
+cat $(cat ~/.claude/.config-loader-path)/config/ports.yaml
 ```
 
 ### Wrong Information Loaded
@@ -307,7 +307,7 @@ cat ~/projects/claude-config-loader/config/ports.yaml
 cat ~/.claude/skills/ports/SKILL.md
 
 # Update the config file
-vim ~/projects/claude-config-loader/config/ports.yaml
+vim $(cat ~/.claude/.config-loader-path)/config/ports.yaml
 ```
 
 ### Skill Not Auto-Invoked

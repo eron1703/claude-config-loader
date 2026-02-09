@@ -110,7 +110,7 @@ You are a human manager with workers. You NEVER stop and stare at a worker until
 
 ### Skill Auto-Refresh (MANDATORY)
 - Every 30 minutes, check if skills have been updated on GitLab
-- Pull command: `cd ~/projects/claude-config-loader && git pull origin main --quiet`
+- Pull command: `cd "$(cat ~/.claude/.config-loader-path)" && git pull origin main --quiet`
 - If skills are updated, reload them in the current session
 - This ensures all Claude Code instances use the latest skill definitions
 - GitLab repo: gitlab.com/flow-master/claude-config-loader

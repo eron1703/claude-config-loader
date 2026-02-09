@@ -33,24 +33,18 @@ This project provides:
 
 ## Installation
 
-### 1. Install Skills (Global)
+### Quick Install
 
 ```bash
-# Link skills to Claude's global skills directory
-ln -s /Users/benjaminhippler/projects/claude-config-loader/skills ~/.claude/skills/config
+# Run the install script from wherever you cloned the repo
+bash /path/to/claude-config-loader/install.sh
 ```
 
-Or copy them:
-```bash
-cp -r /Users/benjaminhippler/projects/claude-config-loader/skills/* ~/.claude/skills/
-```
-
-### 2. Install Hook (Optional)
-
-```bash
-# Link hook script
-ln -s /Users/benjaminhippler/projects/claude-config-loader/hooks/load-context.sh ~/.claude/hooks/load-context.sh
-```
+The install script auto-detects its location and:
+- Creates symlinks for all skills in `~/.claude/skills/`
+- Saves its path to `~/.claude/.config-loader-path` for dynamic resolution
+- Configures hooks in `~/.claude/settings.json` (preserves existing plugins)
+- Installs the auto-load hook to `~/.claude/hooks/`
 
 Then add to `~/.claude/settings.json`:
 ```json

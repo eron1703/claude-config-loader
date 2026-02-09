@@ -216,7 +216,7 @@ The `/remember` skill works with all other skills:
 
 Check if Claude has write permissions:
 ```bash
-ls -la ~/projects/claude-config-loader/config/
+ls -la $(cat ~/.claude/.config-loader-path)/config/
 ```
 
 All files should be writable by your user.
@@ -241,5 +241,5 @@ After saving, verify with appropriate skill:
 
 If not showing, check the YAML file directly:
 ```bash
-cat ~/projects/claude-config-loader/config/ports.yaml
+cat $(cat ~/.claude/.config-loader-path)/config/ports.yaml
 ```

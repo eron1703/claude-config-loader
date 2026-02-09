@@ -61,6 +61,6 @@ notes: |
 # Operating System
 os:
   type: macOS
-  user: benjaminhippler
-  shell: bash
-  home: /Users/benjaminhippler
+  user: "auto-detected (see $USER)"
+  shell: "auto-detected (see $SHELL)"
+  home: "auto-detected (see $HOME)"

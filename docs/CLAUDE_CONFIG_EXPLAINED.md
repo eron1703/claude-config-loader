@@ -22,7 +22,7 @@ Claude Code has multiple config locations:
 ### 1. Your Source of Truth (This Project)
 
 ```
-~/projects/claude-config-loader/
+$(cat ~/.claude/.config-loader-path)/
 ├── config/          ← YOUR ACTUAL CONFIG DATA (edit these!)
 │   ├── ports.yaml
 │   ├── servers.yaml
@@ -40,11 +40,11 @@ Claude Code has multiple config locations:
 ```
 ~/.claude/
 ├── skills/          ← SHORTCUTS to claude-config-loader/skills/
-│   ├── ports        → ~/projects/claude-config-loader/skills/ports
-│   ├── servers      → ~/projects/claude-config-loader/skills/servers
+│   ├── ports        → $(cat ~/.claude/.config-loader-path)/skills/ports
+│   ├── servers      → $(cat ~/.claude/.config-loader-path)/skills/servers
 │   └── ...
 ├── hooks/
-│   └── load-context.sh  → ~/projects/claude-config-loader/hooks/load-context.sh
+│   └── load-context.sh  → $(cat ~/.claude/.config-loader-path)/hooks/load-context.sh
 └── settings.json    ← HOOK CONFIGURATION (points to load-context.sh)
 ```
 
@@ -94,7 +94,7 @@ claude
 1. Hook runs (shows reminder)
 2. You invoke `/ports`
 3. Claude reads `~/.claude/skills/ports/SKILL.md` (which is a shortcut)
-4. Skill executes: `cat ~/projects/claude-config-loader/config/ports.yaml`
+4. Skill executes: `cat $(cat ~/.claude/.config-loader-path)/config/ports.yaml`
 5. Config is loaded
 
 **You're in resolver, but it loads config from claude-config-loader. This is INTENTIONAL.**
@@ -102,7 +102,7 @@ claude
 ### When You Edit Config
 
 ```bash
-cd ~/projects/claude-config-loader/config
+cd $(cat ~/.claude/.config-loader-path)/config
 vim ports.yaml
 # Make changes
 ```
@@ -184,7 +184,7 @@ Claude: Resolver backend is on port 9000
 
 **When you change config:**
 ```bash
-vim ~/projects/claude-config-loader/config/ports.yaml
+vim $(cat ~/.claude/.config-loader-path)/config/ports.yaml
 # Save changes
 ```
 
@@ -202,8 +202,8 @@ Changes are immediately available because skills read directly from this file.
 When you invoke `/ports`, here's what happens:
 
 1. **Claude checks:** `~/.claude/skills/ports/SKILL.md` (global skill)
-2. **Shortcut points to:** `~/projects/claude-config-loader/skills/ports/SKILL.md`
-3. **Skill contains:** Command to read `~/projects/claude-config-loader/config/ports.yaml`
+2. **Shortcut points to:** `$(cat ~/.claude/.config-loader-path)/skills/ports/SKILL.md`
+3. **Skill contains:** Command to read `$(cat ~/.claude/.config-loader-path)/config/ports.yaml`
 4. **Config loaded:** From claude-config-loader project
 
 **You can be in ANY directory. Skills always load from claude-config-loader.**
@@ -218,7 +218,7 @@ You can override for specific projects:
 cd ~/projects/resolver
 
 # Copy template
-cp ~/projects/claude-config-loader/config/project-templates/SUPERVISOR_MODE_TEMPLATE.md \
+cp $(cat ~/.claude/.config-loader-path)/config/project-templates/SUPERVISOR_MODE_TEMPLATE.md \
    ./claude_instructions.md
 
 # Edit for this project
@@ -244,8 +244,8 @@ claude
 When `/rules` is invoked:
 
 1. **Highest priority:** `./claude_instructions.md` (current project)
-2. **Medium priority:** `~/projects/claude-config-loader/config/rules/architecture.md`
-3. **Lowest priority:** `~/projects/claude-config-loader/config/rules/global-rules.md`
+2. **Medium priority:** `$(cat ~/.claude/.config-loader-path)/config/rules/architecture.md`
+3. **Lowest priority:** `$(cat ~/.claude/.config-loader-path)/config/rules/global-rules.md`
 
 Project-specific always wins.
 
@@ -254,16 +254,16 @@ Project-specific always wins.
 ## Quick Decision Guide
 
 ### "Where do I edit ports?"
-→ `~/projects/claude-config-loader/config/ports.yaml`
+→ `$(cat ~/.claude/.config-loader-path)/config/ports.yaml`
 
 ### "Where do I edit servers?"
-→ `~/projects/claude-config-loader/config/servers.yaml`
+→ `$(cat ~/.claude/.config-loader-path)/config/servers.yaml`
 
 ### "Where do I add project-specific rules?"
 → `~/projects/your-project/claude_instructions.md`
 
 ### "Where are the skills?"
-→ Source: `~/projects/claude-config-loader/skills/`
+→ Source: `$(cat ~/.claude/.config-loader-path)/skills/`
 → Shortcuts: `~/.claude/skills/` (auto-created by install.sh)
 
 ### "Do I need to reinstall after editing config?"
@@ -278,7 +278,7 @@ Project-specific always wins.
 
 ```
 YOU EDIT HERE:
-~/projects/claude-config-loader/config/
+$(cat ~/.claude/.config-loader-path)/config/
 
 SHORTCUTS (auto-managed):
 ~/.claude/skills/ → points to claude-config-loader
@@ -302,6 +302,6 @@ Think of it like this:
 - Skills are like functions that read from the library
 - Works from anywhere because shortcuts are global
 
-**You only edit ONE place:** `~/projects/claude-config-loader/config/`
+**You only edit ONE place:** `$(cat ~/.claude/.config-loader-path)/config/`
 
 Everything else is automatic.

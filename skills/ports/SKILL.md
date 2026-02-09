@@ -6,7 +6,7 @@ disable-model-invocation: false
 
 # Port Configuration
 
-!`cat ~/projects/claude-config-loader/config/ports.yaml`
+!`cat "$(cat ~/.claude/.config-loader-path)/config/ports.yaml"`
 
 Use this information when:
 - Working with docker-compose files

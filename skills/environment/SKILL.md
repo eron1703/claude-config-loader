@@ -6,7 +6,7 @@ disable-model-invocation: false
 
 # Development Environment
 
-!`cat ~/projects/claude-config-loader/config/environment.yaml`
+!`cat "$(cat ~/.claude/.config-loader-path)/config/environment.yaml"`
 
 ## Critical Docker/OrbStack Rules
 

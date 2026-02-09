@@ -10,12 +10,12 @@ The system automatically discovers any new skills you add. Just follow this patt
 
 ### 1. Create Skill Directory
 ```bash
-mkdir -p ~/projects/claude-config-loader/skills/my-new-skill
+mkdir -p $(cat ~/.claude/.config-loader-path)/skills/my-new-skill
 ```
 
 ### 2. Create SKILL.md File
 ```bash
-cat > ~/projects/claude-config-loader/skills/my-new-skill/SKILL.md << 'EOF'
+cat > $(cat ~/.claude/.config-loader-path)/skills/my-new-skill/SKILL.md << 'EOF'
 ---
 name: my-new-skill
 description: What this skill does and when to use it
@@ -24,7 +24,7 @@ disable-model-invocation: false
 
 # My New Skill
 
-!`cat ~/projects/claude-config-loader/config/my-config.yaml`
+!`cat $(cat ~/.claude/.config-loader-path)/config/my-config.yaml`
 
 Use this information when:
 - Doing X
@@ -35,7 +35,7 @@ EOF
 
 ### 3. Link to Global Skills
 ```bash
-ln -sf ~/projects/claude-config-loader/skills/my-new-skill ~/.claude/skills/my-new-skill
+ln -sf $(cat ~/.claude/.config-loader-path)/skills/my-new-skill ~/.claude/skills/my-new-skill
 ```
 
 **Done!** The next time you start Claude, the skill is automatically loaded.
@@ -67,10 +67,10 @@ Additional markdown content here.
 
 ```bash
 # 1. Create directory
-mkdir -p ~/projects/claude-config-loader/skills/aws
+mkdir -p $(cat ~/.claude/.config-loader-path)/skills/aws
 
 # 2. Create SKILL.md
-cat > ~/projects/claude-config-loader/skills/aws/SKILL.md << 'EOF'
+cat > $(cat ~/.claude/.config-loader-path)/skills/aws/SKILL.md << 'EOF'
 ---
 name: aws
 description: Load AWS configuration including accounts, regions, and resources
@@ -79,13 +79,13 @@ disable-model-invocation: false
 
 # AWS Configuration
 
-!`cat ~/projects/claude-config-loader/config/aws.yaml`
+!`cat $(cat ~/.claude/.config-loader-path)/config/aws.yaml`
 
 Use this when working with AWS resources.
 EOF
 
 # 3. Create config file
-cat > ~/projects/claude-config-loader/config/aws.yaml << 'EOF'
+cat > $(cat ~/.claude/.config-loader-path)/config/aws.yaml << 'EOF'
 accounts:
   production:
     account_id: "123456789012"
@@ -96,17 +96,17 @@ accounts:
 EOF
 
 # 4. Link skill
-ln -sf ~/projects/claude-config-loader/skills/aws ~/.claude/skills/aws
+ln -sf $(cat ~/.claude/.config-loader-path)/skills/aws ~/.claude/skills/aws
 ```
 
 ### Example 2: Testing Guidelines Skill
 
 ```bash
 # 1. Create directory
-mkdir -p ~/projects/claude-config-loader/skills/testing
+mkdir -p $(cat ~/.claude/.config-loader-path)/skills/testing
 
 # 2. Create SKILL.md
-cat > ~/projects/claude-config-loader/skills/testing/SKILL.md << 'EOF'
+cat > $(cat ~/.claude/.config-loader-path)/skills/testing/SKILL.md << 'EOF'
 ---
 name: testing
 description: Load testing guidelines and best practices
@@ -115,11 +115,11 @@ disable-model-invocation: false
 
 # Testing Guidelines
 
-!`cat ~/projects/claude-config-loader/config/testing-guidelines.md`
+!`cat $(cat ~/.claude/.config-loader-path)/config/testing-guidelines.md`
 EOF
 
 # 3. Create guidelines
-cat > ~/projects/claude-config-loader/config/testing-guidelines.md << 'EOF'
+cat > $(cat ~/.claude/.config-loader-path)/config/testing-guidelines.md << 'EOF'
 # Testing Best Practices
 
 ## Unit Tests
@@ -134,7 +134,7 @@ cat > ~/projects/claude-config-loader/config/testing-guidelines.md << 'EOF'
 EOF
 
 # 4. Link skill
-ln -sf ~/projects/claude-config-loader/skills/testing ~/.claude/skills/testing
+ln -sf $(cat ~/.claude/.config-loader-path)/skills/testing ~/.claude/skills/testing
 ```
 
 ---
@@ -179,7 +179,7 @@ The hook automatically discovers skills from:
 
 Store skill data in:
 ```
-~/projects/claude-config-loader/config/
+$(cat ~/.claude/.config-loader-path)/config/
 ```
 
 Use any format:
@@ -190,7 +190,7 @@ Use any format:
 
 Skills load them with:
 ```markdown
-!`cat ~/projects/claude-config-loader/config/my-file.yaml`
+!`cat $(cat ~/.claude/.config-loader-path)/config/my-file.yaml`
 ```
 
 ---
@@ -256,7 +256,7 @@ Some skills you might want to add:
 
 **To add a new skill:**
 
-1. Create directory: `~/projects/claude-config-loader/skills/skill-name/`
+1. Create directory: `$(cat ~/.claude/.config-loader-path)/skills/skill-name/`
 2. Create `SKILL.md` with frontmatter and content
 3. Link to `~/.claude/skills/`: `ln -sf source destination`
 4. Restart Claude

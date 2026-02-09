@@ -6,7 +6,7 @@ disable-model-invocation: false
 
 # Database Configuration
 
-!`cat ~/projects/claude-config-loader/config/databases.yaml`
+!`cat "$(cat ~/.claude/.config-loader-path)/config/databases.yaml"`
 
 Use this information when:
 - Working with database migrations
