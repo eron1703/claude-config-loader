@@ -6,7 +6,7 @@ disable-model-invocation: false
 
 # FlowMaster Server Configuration Skill
 
-> **SNAPSHOT: 2026-02-08 11:00 Dubai Time (07:00 UTC) — likely changing soon**
+> **SNAPSHOT: 2026-02-11 14:30 Dubai Time (10:30 UTC)**
 
 ## Server Architecture
 
@@ -26,13 +26,32 @@ disable-model-invocation: false
 
 ## Demo Server (65.21.153.235) — PRIMARY
 
-### 1 FlowMaster Environment (no separate dev/test/staging on this server)
+### 3 FlowMaster Environments on K3S
 
-#### K3S FlowMaster Cluster
-- **Namespace:** `flowmaster`
+**IMPORTANT (as of 2026-02-11):** http://65.21.153.235 NOW routes to **flowmaster-dev** (NOT production)
+
+#### Production Environment (`flowmaster` namespace)
+- **Access:** Direct kubectl only (nginx points elsewhere)
 - **Pods:** 29 running / 30 deployments (data-intelligence scaled to 0)
+- **Status:** Fully operational, separate from default nginx routing
+- **Image tags:** Mixed (some with SDX integration tags, v2-fix, etc.)
+
+#### Development Environment (`flowmaster-dev` namespace) — **DEFAULT VIA NGINX**
+- **Access:** http://65.21.153.235 (public URL)
+- **Pods:** 26 running / 26 deployments
+- **Nginx ClusterIPs:** frontend 10.43.206.17, api-gateway 10.43.7.174, websocket 10.43.34.82
+- **Database:** flowmaster_dev_core, flowmaster_dev_users (in databases-test namespace)
+- **Image tags:** Mostly `:latest`
+- **Status:** Login working, dev credentials active
+
+#### Test Environment (`flowmaster-test` namespace)
+- **Access:** http://65.21.153.235:8080 (port blocked by Hetzner firewall)
+- **Pods:** 29 running / 29 deployments
+- **Status:** Isolated test environment with separate databases
+
+#### K3S Shared Resources
 - **Local Registry:** `localhost:30500` (K3S NodePort)
-- **Total Memory:** ~1.65 GB across 29 pods
+- **Total Memory:** ~4-5 GB across all 3 environments
 
 **Deployed Services (29):**
 
@@ -94,8 +113,19 @@ disable-model-invocation: false
 
 ## Network Architecture (Demo Server)
 
+**CURRENT ROUTING (as of 2026-02-11):**
+
 ```
-Internet → Nginx (port 80)
+Internet → Nginx (port 80) → flowmaster-dev namespace
+  ├── / → frontend ClusterIP (10.43.206.17:3000)
+  ├── /api/ → api-gateway ClusterIP (10.43.7.174:9000)
+  └── /ws/ → websocket-gateway ClusterIP (10.43.34.82:9010)
+```
+
+**PREVIOUS ROUTING (before 2026-02-11):**
+
+```
+Internet → Nginx (port 80) → flowmaster namespace (production)
   ├── / → frontend ClusterIP (10.43.185.219:3000)
   ├── /api/ → api-gateway ClusterIP (10.43.193.134:9000)
   └── /ws/ → websocket-gateway ClusterIP (10.43.43.253:9010)

@@ -75,6 +75,25 @@ glab variable get HETZNER_API_TOKEN --group flow-master
 - **Use for**: Viewing dashboards, managing alert rules, checking monitoring data
 - **Quick check**: `curl -s http://admin:$(glab variable get GRAFANA_ADMIN_PASSWORD --group flow-master)@65.21.153.235:3001/api/health`
 
+### FlowMaster Dev Environment (flowmaster-dev namespace)
+**Default credentials (NOT in GitLab - stored in database only):**
+
+| Email | Password | Role | Notes |
+|-------|----------|------|-------|
+| `admin@flowmaster.ai` | `admin` | Administrator | Created 2026-02-11, matches frontend dev login button |
+| `admin@flowmaster.io` | `Admin@123` | Tenant Admin | Seeded from migration 012 |
+| `superadmin@flowmaster.io` | `Admin@123` | Platform Superuser | Seeded from migration 012 |
+| `eng.admin@flowmaster.io` | `Admin@123` | Org Admin | Seeded from migration 012 |
+
+**Database details:**
+- Database: `flowmaster_dev_core` (in databases-test namespace)
+- Schema: `auth_service`
+- Table: `"user"` (quoted - reserved keyword)
+- Bcrypt hash for `admin`: `$2b$12$3fqkA46LrHNNiXeXp668EukV2ED3QneA8AGgBlOf7OmfFooFVclWO`
+- Bcrypt hash for `Admin@123`: `$2b$12$HhniFOKLHA4UKkSU/5KTf.ywFNdMy76/uZxxFSAPp3WRCdK8ntc9S`
+
+**Login endpoint:** http://65.21.153.235/api/v1/auth/login
+
 ## Where are credentials stored?
 
 **In GitLab UI:**
