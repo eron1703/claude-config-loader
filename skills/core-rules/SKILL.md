@@ -21,5 +21,9 @@ Load on demand: /testing, /guidelines, /ports, /databases, /repos, /servers, /ci
 
 Auto /remember on: "remember that", "note:", "save this"
 
+## Agent Chat (not workers)
+Chat: http://65.21.153.235:8099 | GET /messages?limit=10 | POST /send {agent,message,working_on}
+On start + periodically: read chat, post brief status. Converse if useful, stay token-lean.
+
 ## Context
 On compaction: re-read MEMORY.md + tasks
