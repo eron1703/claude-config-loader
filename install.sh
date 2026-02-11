@@ -53,11 +53,8 @@ done
 ln -sfn "$LOADER_DIR/skills/core-rules"               "$CLAUDE_DIR/skills/core-rules"
 
 # Supervisor skills
-ln -sfn "$LOADER_DIR/skills/supervisor-methodology"    "$CLAUDE_DIR/skills/supervisor-methodology"
-ln -sfn "$LOADER_DIR/skills/supervisor-timer"           "$CLAUDE_DIR/skills/supervisor-timer"
-ln -sfn "$LOADER_DIR/skills/supervisor-agent-launch"    "$CLAUDE_DIR/skills/supervisor-agent-launch"
+ln -sfn "$LOADER_DIR/skills/supervisor"                 "$CLAUDE_DIR/skills/supervisor"
 ln -sfn "$LOADER_DIR/skills/supervisor-conversation"    "$CLAUDE_DIR/skills/supervisor-conversation"
-ln -sfn "$LOADER_DIR/skills/supervisor-coordinator"     "$CLAUDE_DIR/skills/supervisor-coordinator"
 
 # Worker skills
 for WORKER_SKILL in worker-role worker-reporting worker-stuck-protocol \
