@@ -39,57 +39,66 @@ rm -f "$CLAUDE_DIR/skills/save-infrastructure-info.md"
 rm -f "$CLAUDE_DIR/skills/git-workflow.md"
 rm -f "$CLAUDE_DIR/skills/current-project-context.md"
 
-# Install ALL skills as symlinks (use -n to prevent creating links inside existing dirs)
+# Install ALL skills as symlinks
 echo "Installing skills..."
+
+# Helper: replace dir-or-symlink with a clean symlink
+link_skill() {
+    local src="$1" dst="$2"
+    # If dst is a real directory (not symlink), remove it first
+    if [ -d "$dst" ] && [ ! -L "$dst" ]; then
+        rm -rf "$dst"
+    fi
+    ln -sfn "$src" "$dst"
+}
 
 # Clean any existing symlink artifacts first
 for skill_dir in "$LOADER_DIR"/skills/*/; do
     skill_name=$(basename "$skill_dir")
-    # Remove self-referencing symlinks created by previous ln -sf (without -n)
     rm -f "$skill_dir/$skill_name" 2>/dev/null
 done
 
 # Always-loaded (via hook)
-ln -sfn "$LOADER_DIR/skills/core-rules"               "$CLAUDE_DIR/skills/core-rules"
+link_skill "$LOADER_DIR/skills/core-rules"               "$CLAUDE_DIR/skills/core-rules"
 
 # Supervisor skills
-ln -sfn "$LOADER_DIR/skills/supervisor"                 "$CLAUDE_DIR/skills/supervisor"
-ln -sfn "$LOADER_DIR/skills/supervisor-conversation"    "$CLAUDE_DIR/skills/supervisor-conversation"
+link_skill "$LOADER_DIR/skills/supervisor"                 "$CLAUDE_DIR/skills/supervisor"
+link_skill "$LOADER_DIR/skills/supervisor-conversation"    "$CLAUDE_DIR/skills/supervisor-conversation"
 
 # Worker skills
 for WORKER_SKILL in worker-role worker-reporting worker-stuck-protocol \
     worker-role-coder worker-role-database worker-role-frontend worker-role-infra worker-role-tester \
     worker-ssh worker-gitlab worker-k8s worker-database worker-api-gateway worker-frontend worker-services; do
     if [ -d "$LOADER_DIR/skills/$WORKER_SKILL" ]; then
-        ln -sfn "$LOADER_DIR/skills/$WORKER_SKILL" "$CLAUDE_DIR/skills/$WORKER_SKILL"
+        link_skill "$LOADER_DIR/skills/$WORKER_SKILL" "$CLAUDE_DIR/skills/$WORKER_SKILL"
     fi
 done
 
 # Generic infrastructure (on-demand, all projects)
-ln -sfn "$LOADER_DIR/skills/cicd"                      "$CLAUDE_DIR/skills/cicd"
-ln -sfn "$LOADER_DIR/skills/credentials"               "$CLAUDE_DIR/skills/credentials"
-ln -sfn "$LOADER_DIR/skills/databases"                  "$CLAUDE_DIR/skills/databases"
-ln -sfn "$LOADER_DIR/skills/environment"                "$CLAUDE_DIR/skills/environment"
-ln -sfn "$LOADER_DIR/skills/guidelines"                 "$CLAUDE_DIR/skills/guidelines"
-ln -sfn "$LOADER_DIR/skills/ports"                      "$CLAUDE_DIR/skills/ports"
-ln -sfn "$LOADER_DIR/skills/project"                    "$CLAUDE_DIR/skills/project"
-ln -sfn "$LOADER_DIR/skills/remember"                   "$CLAUDE_DIR/skills/remember"
-ln -sfn "$LOADER_DIR/skills/repos"                      "$CLAUDE_DIR/skills/repos"
-ln -sfn "$LOADER_DIR/skills/save"                       "$CLAUDE_DIR/skills/save"
-ln -sfn "$LOADER_DIR/skills/servers"                    "$CLAUDE_DIR/skills/servers"
-ln -sfn "$LOADER_DIR/skills/testing"                    "$CLAUDE_DIR/skills/testing"
+link_skill "$LOADER_DIR/skills/cicd"                      "$CLAUDE_DIR/skills/cicd"
+link_skill "$LOADER_DIR/skills/credentials"               "$CLAUDE_DIR/skills/credentials"
+link_skill "$LOADER_DIR/skills/databases"                  "$CLAUDE_DIR/skills/databases"
+link_skill "$LOADER_DIR/skills/environment"                "$CLAUDE_DIR/skills/environment"
+link_skill "$LOADER_DIR/skills/guidelines"                 "$CLAUDE_DIR/skills/guidelines"
+link_skill "$LOADER_DIR/skills/ports"                      "$CLAUDE_DIR/skills/ports"
+link_skill "$LOADER_DIR/skills/project"                    "$CLAUDE_DIR/skills/project"
+link_skill "$LOADER_DIR/skills/remember"                   "$CLAUDE_DIR/skills/remember"
+link_skill "$LOADER_DIR/skills/repos"                      "$CLAUDE_DIR/skills/repos"
+link_skill "$LOADER_DIR/skills/save"                       "$CLAUDE_DIR/skills/save"
+link_skill "$LOADER_DIR/skills/servers"                    "$CLAUDE_DIR/skills/servers"
+link_skill "$LOADER_DIR/skills/testing"                    "$CLAUDE_DIR/skills/testing"
 
 # Test-Rig-specific (on-demand, test-rig project only)
-ln -sfn "$LOADER_DIR/skills/test-rig"                   "$CLAUDE_DIR/skills/test-rig"
+link_skill "$LOADER_DIR/skills/test-rig"                   "$CLAUDE_DIR/skills/test-rig"
 
 # FlowMaster-specific (on-demand, flowmaster project only)
-ln -sfn "$LOADER_DIR/skills/flowmaster-backend"         "$CLAUDE_DIR/skills/flowmaster-backend"
-ln -sfn "$LOADER_DIR/skills/flowmaster-database"        "$CLAUDE_DIR/skills/flowmaster-database"
-ln -sfn "$LOADER_DIR/skills/flowmaster-environment"     "$CLAUDE_DIR/skills/flowmaster-environment"
-ln -sfn "$LOADER_DIR/skills/flowmaster-frontend"        "$CLAUDE_DIR/skills/flowmaster-frontend"
-ln -sfn "$LOADER_DIR/skills/flowmaster-overview"        "$CLAUDE_DIR/skills/flowmaster-overview"
-ln -sfn "$LOADER_DIR/skills/flowmaster-server"          "$CLAUDE_DIR/skills/flowmaster-server"
-ln -sfn "$LOADER_DIR/skills/flowmaster-tools"           "$CLAUDE_DIR/skills/flowmaster-tools"
+link_skill "$LOADER_DIR/skills/flowmaster-backend"         "$CLAUDE_DIR/skills/flowmaster-backend"
+link_skill "$LOADER_DIR/skills/flowmaster-database"        "$CLAUDE_DIR/skills/flowmaster-database"
+link_skill "$LOADER_DIR/skills/flowmaster-environment"     "$CLAUDE_DIR/skills/flowmaster-environment"
+link_skill "$LOADER_DIR/skills/flowmaster-frontend"        "$CLAUDE_DIR/skills/flowmaster-frontend"
+link_skill "$LOADER_DIR/skills/flowmaster-overview"        "$CLAUDE_DIR/skills/flowmaster-overview"
+link_skill "$LOADER_DIR/skills/flowmaster-server"          "$CLAUDE_DIR/skills/flowmaster-server"
+link_skill "$LOADER_DIR/skills/flowmaster-tools"           "$CLAUDE_DIR/skills/flowmaster-tools"
 
 # Install hooks
 echo "Installing hooks..."
