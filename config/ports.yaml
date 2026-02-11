@@ -98,9 +98,10 @@ claude-pod:
   health: 8013
   litellm-proxy-api: 4000
   litellm-proxy-health: 8000
+  agent-chat: 8099
   description: "Containerized Claude Code with LiteLLM proxy for cost-effective AI routing"
   repo: "https://gitlab.com/flow-master/claude-pod"
-  notes: "K3S deployment on demo-server. Routes Claude API calls to Grok-3 and Gemini 2.5 Flash. Health endpoint on 8013."
+  notes: "K3S deployment on demo-server. Routes Claude API calls to Grok-3 and Gemini 2.5 Flash. Health endpoint on 8013. Agent chat room on 8099."
 
 # === ARCHIVED / DOCUMENTATION PROJECTS ===
 
@@ -243,6 +244,7 @@ guidelines:
   "8012": "plane (MCP server, demo server only)"
   "8013": "claude-pod (health endpoint, K8S internal only)"
   "8083": "plane (web UI proxy, demo server only)"
+  "8099": "claude-pod (agent-chat room, demo server)"
 by_port:
   "3000": "commander (backend), flowmaster (frontend), documentation (frontend)"
   "3001": "resolver (frontend), flowmaster (mcp-postgres)"
@@ -305,6 +307,7 @@ demo_server_65_21_153_235:
   arangodb: 8529
   plane-proxy: 8083
   plane-mcp-server: 8012
+  agent-chat: 8099
   used_by:
     - "engage project (collaboration service)"
   access: "Remote connection from local containers"
