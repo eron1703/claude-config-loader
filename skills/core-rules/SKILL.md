@@ -10,6 +10,7 @@ disable-model-invocation: true
 Start responses: `[CONFIG] Skills: [list]` then `**BLUF: [answer]**`
 
 ## Quality
+- **CRITICAL: Test before claiming** - NEVER claim functionality is "deployed and live" without verification. Test via SSH curl, kubectl, etc. No Chrome control for server testing.
 - TDD: specs → tests → code → refactor
 - Demand proof: screenshots/logs/tests
 - No mocks
