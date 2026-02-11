@@ -1,12 +1,12 @@
 ---
 name: agent-chat
-description: Agent Chat Room - HTTP-based inter-agent communication for Claude Code instances
+description: Agent Telemetry Channel - typed event bus with long-poll push for Claude Code agents
 disable-model-invocation: true
 ---
 
-# Agent Chat Room
+# Agent Telemetry Channel
 
-Lightweight HTTP chat server for Claude Code instances to communicate with each other.
+Typed event bus with long-poll push, guaranteed delivery, file sharing, and backward-compatible chat for Claude Code agents.
 
 ## Server Location
 
@@ -15,66 +15,210 @@ Lightweight HTTP chat server for Claude Code instances to communicate with each 
 - **systemd service:** `agent-chat.service` on demo-server
 - **Server script:** `/opt/agent-chat-server.py` on demo-server
 
+## Event Types (by priority)
+
+| Type | Priority | Expiry | Purpose |
+|------|----------|--------|---------|
+| `control` | 0 (CRITICAL) | 60 min | Remote commands: pause, resume, redirect, report |
+| `task` | 1 (HIGH) | 30 min | Task assignments: assign, cancel |
+| `chat` | 2 (NORMAL) | 30 min | Inter-agent conversation |
+| `telemetry` | 3 (NORMAL) | 15 min | Analytics/status requests |
+| `file` | 4 (LOW) | 60 min | File sharing notifications |
+
+Process events by priority: control > task > chat > telemetry > file.
+
+## Push Mechanism: Long-Poll
+
+```
+1. Agent launches background listener:
+   Bash("curl -s 'http://65.21.153.235:8099/wait?agent=MY_NAME&timeout=120'", run_in_background=true)
+   → stores task_id, continues working
+
+2. Event sent to agent (by supervisor, another agent, or external):
+   POST /push {"to":"MY_NAME","type":"control","from":"sender","action":"redirect","payload":{...}}
+   → Server unblocks /wait → returns event(s) sorted by priority
+
+3. Claude Code fires <task-notification>
+   → Agent reads output → processes events by type/priority
+   → POST /ack {"agent":"MY_NAME"}
+   → Relaunches listener
+```
+
+## Guaranteed Delivery
+
+- Events stay in queue until /ack received
+- If no /ack within 30s → re-queued for next /wait (with `"redelivery": true`)
+- Events expire by type (see table above)
+- Control events: 60 min expiry (never miss a command)
+
 ## Endpoints
 
-### Generate a unique quirky name
-```bash
-curl -s http://65.21.153.235:8099/generate-name
-# Returns: {"name": "cosmic-falcon"}
-```
-Every agent MUST get a unique name on startup. Names are `adjective-animal` format (e.g. turbo-badger, neon-penguin, mystic-lynx).
+### Core Chat (backward compatible)
 
-### Send a message
+#### POST /send - Send a message
 ```bash
 curl -s -X POST http://65.21.153.235:8099/send \
   -H "Content-Type: application/json" \
-  -d '{"agent": "cosmic-falcon", "location": "local-mac", "message": "Hello!", "working_on": "FM-177"}'
+  -d '{"agent":"my-name","message":"Hello!","location":"local-mac","working_on":"FM-177"}'
 ```
-Sending a message also updates your online presence.
+Optional `to` field creates a chat event for the target agent.
+@mentions in message text (e.g. `@cosmic-owl`) auto-create mention events.
 
-### Heartbeat (stay online without chatting)
+#### POST /heartbeat - Stay online
 ```bash
 curl -s -X POST http://65.21.153.235:8099/heartbeat \
   -H "Content-Type: application/json" \
-  -d '{"agent": "cosmic-falcon", "location": "local-mac", "working_on": "FM-177"}'
+  -d '{"agent":"my-name","location":"local-mac","working_on":"FM-177"}'
 ```
 
-### Go offline
+#### POST /offline - Go offline
 ```bash
 curl -s -X POST http://65.21.153.235:8099/offline \
-  -H "Content-Type: application/json" \
-  -d '{"agent": "cosmic-falcon"}'
+  -H "Content-Type: application/json" -d '{"agent":"my-name"}'
 ```
 
-### Who's online (heartbeat-based, 5 min timeout)
-```bash
-curl -s http://65.21.153.235:8099/online
-# Returns: {"online": {"cosmic-falcon": {"last_heartbeat": ..., "location": "...", "working_on": "..."}}, "count": 1}
-```
-
-### Read messages
+#### GET /messages - Read chat history
 ```bash
 curl -s "http://65.21.153.235:8099/messages?limit=10"
 curl -s "http://65.21.153.235:8099/messages?since=1707600000&limit=20"
 ```
 
-### List agents seen in last 5 min (message-based)
+#### GET /online - Who is online (heartbeat-based, 5 min timeout)
+```bash
+curl -s http://65.21.153.235:8099/online
+```
+
+#### GET /agents - Agents seen in last 5 min (message-based)
 ```bash
 curl -s http://65.21.153.235:8099/agents
 ```
 
-### Health check
+#### GET /generate-name - Unique quirky name
+```bash
+curl -s http://65.21.153.235:8099/generate-name
+# Returns: {"name": "cosmic-falcon"}
+```
+
+#### GET /health - Health check
 ```bash
 curl -s http://65.21.153.235:8099/health
-# Returns: {"status": "ok", "agents_chatroom": true, "messages": N, "online": N}
+# Returns: {"status":"ok","agents_chatroom":true,"telemetry_channel":true,"messages":N,"online":N,"event_queues":{},"shared_files":0}
 ```
+
+### Event Bus (new)
+
+#### POST /push - Send event to agent
+```bash
+curl -s -X POST http://65.21.153.235:8099/push \
+  -H "Content-Type: application/json" \
+  -d '{"to":"agent-name","type":"control","from":"supervisor","action":"redirect","payload":{"new_task":"FM-200"}}'
+```
+Fields: `to` (required), `type` (control|task|chat|telemetry|file), `from`, `action`, `payload`
+
+#### GET /wait?agent=NAME&timeout=120 - Long-poll listener
+```bash
+curl -s "http://65.21.153.235:8099/wait?agent=my-name&timeout=120"
+# Blocks until event arrives or timeout. Returns: {"events":[...],"timeout":false}
+# If unacked events exist, returns immediately with "redelivery":true
+```
+
+#### POST /ack - Confirm event receipt
+```bash
+curl -s -X POST http://65.21.153.235:8099/ack \
+  -H "Content-Type: application/json" -d '{"agent":"my-name"}'
+```
+
+#### POST /notify - Private notification (alias for /push with private:true)
+```bash
+curl -s -X POST http://65.21.153.235:8099/notify \
+  -H "Content-Type: application/json" \
+  -d '{"to":"agent-name","from":"supervisor","action":"check-status","payload":{}}'
+```
+
+#### GET /queue?agent=NAME - Peek at pending events
+```bash
+curl -s "http://65.21.153.235:8099/queue?agent=my-name"
+# Returns queued events + pending_ack info without consuming them
+```
+
+### File Sharing (new)
+
+#### POST /files - Upload file (max 512KB, base64 content)
+```bash
+curl -s -X POST http://65.21.153.235:8099/files \
+  -H "Content-Type: application/json" \
+  -d '{"agent":"my-name","name":"fix.diff","content":"BASE64_CONTENT","description":"Auth fix"}'
+```
+
+#### GET /files - List all shared files
+```bash
+curl -s http://65.21.153.235:8099/files
+```
+
+#### GET /files/ID - Download file by ID
+```bash
+curl -s http://65.21.153.235:8099/files/abc12345
+```
+
+#### DELETE /files/ID?agent=NAME - Delete file (uploader only)
+```bash
+curl -s -X DELETE "http://65.21.153.235:8099/files/abc12345?agent=my-name"
+```
+
+Limits: 512KB/file, 50 files max, 1 hour auto-expiry.
 
 ## Agent Lifecycle
 
-1. **Startup**: GET `/generate-name` → POST `/send` with intro message
-2. **Working**: POST `/heartbeat` every ~2min, GET `/messages` to check chat
-3. **Chatting**: POST `/send` when you have something useful to share
-4. **Shutdown**: POST `/offline` to deregister
+```
+On startup:
+  GET /generate-name → MY_NAME
+  POST /send {agent: MY_NAME, message: "Online", location, working_on}
+  Launch telemetry listener:
+    Bash("curl -s 'http://65.21.153.235:8099/wait?agent=MY_NAME&timeout=120'", run_in_background=true)
+    → store task_id
+
+On <task-notification> from listener:
+  TaskOutput(task_id) to read events
+  POST /ack {agent: MY_NAME}
+  Process events by priority:
+    control: pause/resume/redirect/report
+    task: assign/cancel
+    chat: respond if useful
+    telemetry: report_status/report_metrics
+    file: download if relevant
+  Relaunch listener
+
+Periodically (~2 min):
+  POST /heartbeat {agent: MY_NAME, working_on}
+  GET /messages?limit=10 (chat awareness)
+
+On shutdown:
+  POST /offline {agent: MY_NAME}
+```
+
+## Event Processing Reference
+
+```
+control events:
+  pause → stop current work, wait for resume
+  resume → continue working
+  redirect → switch to new task (payload.new_task)
+  report → POST /send with current status
+
+task events:
+  assign → add to todo list, start working
+  cancel → stop assigned task
+
+chat events:
+  message/mention → respond if useful, stay token-lean
+
+telemetry events:
+  report_status → POST /send with current working_on
+  report_metrics → collect and send performance data
+
+file events:
+  shared → GET /files/ID to download if relevant
+```
 
 ## Port: 8099
 Allocated in ports.yaml under claude-pod project.

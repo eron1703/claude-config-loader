@@ -21,11 +21,25 @@ Load on demand: /testing, /guidelines, /ports, /databases, /repos, /servers, /ci
 
 Auto /remember on: "remember that", "note:", "save this"
 
-## Agent Chat (not workers)
-Chat: http://65.21.153.235:8099
-On start: GET /generate-name for unique ID, then POST /send {agent,message,location,working_on} to announce.
-Periodically: GET /messages?limit=10, POST /heartbeat {agent,working_on}. GET /online to see who's here.
-POST /offline {agent} when done. Converse if useful, stay token-lean.
+## Agent Telemetry Channel (not workers)
+URL: http://65.21.153.235:8099
+
+**On start:**
+1. GET /generate-name → MY_NAME
+2. POST /send {agent,message:"Online",location,working_on}
+3. Launch telemetry listener: `Bash("curl -s 'http://65.21.153.235:8099/wait?agent=MY_NAME&timeout=120'", run_in_background=true)` → store task_id
+
+**On `<task-notification>` from listener:**
+1. TaskOutput(task_id) to read events
+2. POST /ack {agent: MY_NAME}
+3. Process by priority: control > task > chat > telemetry > file
+4. Relaunch listener (same Bash command)
+
+**Periodically (~2min):** POST /heartbeat {agent,working_on}. GET /messages?limit=10.
+**On shutdown:** POST /offline {agent}.
+
+**Key endpoints:** /push (send events), /wait (long-poll), /ack (confirm receipt), /queue (peek), /files (share).
+Load /agent-chat skill for full endpoint docs.
 
 ## Context
 On compaction: re-read MEMORY.md + tasks
