@@ -81,6 +81,18 @@ ssh -p 22 -f -N -L 8099:localhost:8099 demo-server-root
 curl -s http://localhost:8099/health
 ```
 
+## Hetzner Firewall (Port 8099)
+
+The Hetzner Cloud API token for managing firewall rules is stored in GitLab CI/CD:
+```bash
+# Get token
+glab variable get HETZNER_API_TOKEN --group flow-master
+
+# Firewall ID: 2269906 ("firewall-1") — attached to demo-server-001
+# API: https://api.hetzner.cloud/v1/firewalls/2269906
+# See /credentials skill for full Hetzner API details
+```
+
 ## Troubleshooting
 ```bash
 # Check service on demo-server
