@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Claude Config Loader - Startup Hook
-# Runs on SessionStart and UserPromptSubmit
-# Loads skills list + core behavioral rules on EVERY message
+# Claude Config Loader - FULL LOAD (SessionStart only)
+# Loads skill catalog + core behavioral rules once per session
+# Per-message reminder is handled by per-message-reminder.sh
 
 SKILLS_DIR=~/.claude/skills
 CONFIG_LOADER_PATH_FILE=~/.claude/.config-loader-path

@@ -95,11 +95,16 @@ ln -sfn "$LOADER_DIR/skills/flowmaster-tools"           "$CLAUDE_DIR/skills/flow
 echo "Installing hooks..."
 cp "$LOADER_DIR/hooks/auto-load-config.sh"             "$CLAUDE_DIR/hooks/auto-load-config.sh"
 cp "$LOADER_DIR/hooks/auto-sync-config.sh"             "$CLAUDE_DIR/hooks/auto-sync-config.sh"
+cp "$LOADER_DIR/hooks/per-message-reminder.sh"         "$CLAUDE_DIR/hooks/per-message-reminder.sh"
 chmod +x "$CLAUDE_DIR/hooks/auto-load-config.sh"
 chmod +x "$CLAUDE_DIR/hooks/auto-sync-config.sh"
+chmod +x "$CLAUDE_DIR/hooks/per-message-reminder.sh"
 
 # Configure settings.json (preserve existing plugins if any)
+# SessionStart: full skill load + sync
+# UserPromptSubmit: lightweight reminder + sync (debounced)
 LOAD_HOOK="$CLAUDE_DIR/hooks/auto-load-config.sh"
+REMINDER_HOOK="$CLAUDE_DIR/hooks/per-message-reminder.sh"
 SYNC_HOOK="$CLAUDE_DIR/hooks/auto-sync-config.sh"
 echo "Configuring hooks..."
 
@@ -117,13 +122,13 @@ settings['hooks'] = {
         {'type': 'command', 'command': '$SYNC_HOOK'}
     ]}],
     'UserPromptSubmit': [{'hooks': [
-        {'type': 'command', 'command': '$LOAD_HOOK'},
+        {'type': 'command', 'command': '$REMINDER_HOOK'},
         {'type': 'command', 'command': '$SYNC_HOOK'}
     ]}]
 }
 with open(settings_path, 'w') as f:
     json.dump(settings, f, indent=2)
-print('Updated settings.json with load + sync hooks (preserved plugins)')
+print('Updated settings.json (full load on SessionStart, lightweight reminder on UserPromptSubmit)')
 "
 else
     cat > "$CLAUDE_DIR/settings.json" << SETTINGSEOF
@@ -140,7 +145,7 @@ else
     "UserPromptSubmit": [
       {
         "hooks": [
-          { "type": "command", "command": "$LOAD_HOOK" },
+          { "type": "command", "command": "$REMINDER_HOOK" },
           { "type": "command", "command": "$SYNC_HOOK" }
         ]
       }
@@ -159,8 +164,10 @@ ls -1 "$CLAUDE_DIR/skills/" | sed 's/^/  /'
 echo ""
 echo "Config loader path: $LOADER_DIR"
 echo "Hooks:"
-echo "  SessionStart + UserPromptSubmit -> auto-load-config.sh (skill loading)"
-echo "  SessionStart + UserPromptSubmit -> auto-sync-config.sh (auto commit/push/pull, debounced 30min)"
+echo "  SessionStart  -> auto-load-config.sh (full skill loading, ~3KB)"
+echo "  SessionStart  -> auto-sync-config.sh (git sync, debounced 30min)"
+echo "  UserPromptSubmit -> per-message-reminder.sh (lightweight, ~200 bytes)"
+echo "  UserPromptSubmit -> auto-sync-config.sh (git sync, debounced 30min)"
 echo "Always loaded: core-rules, supervisor-methodology"
 echo "On-demand: /ports /databases /repos /servers /cicd /project /credentials /save /guidelines /testing /environment"
 echo "Test-Rig: test-rig (project development context)"
