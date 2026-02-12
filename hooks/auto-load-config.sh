@@ -11,7 +11,7 @@ if [ -f "$CONFIG_LOADER_PATH_FILE" ]; then
 else
     SOURCE_DIR=~/.claude/skills
 fi
-ALWAYS_LOAD=(core-rules supervisor)
+ALWAYS_LOAD=(core-rules supervisor build-method)
 
 # --- Health Check ---
 EXPECTED_SKILLS=40
@@ -39,6 +39,7 @@ echo ""
 echo "**Always Loaded:**"
 echo "- core-rules (communication, quality, context) - ALL agents"
 echo "- supervisor (delegation, timer, planning) - supervisors only"
+echo "- build-method (decompose → spec → parallel build) - ALL agents"
 echo ""
 echo "**Supervisor Skills (on demand):**"
 echo "- supervisor-conversation - Resume pattern, agent monitoring, TaskOutput peek"
@@ -60,6 +61,7 @@ echo "- /credentials - Credential access details"
 echo "- /save - Save infrastructure info process"
 echo "- /testing - Testing methodology and test-rig tool"
 echo "- /environment - Development environment setup"
+echo "- /new-project-playbook - New project setup: GitLab, CI/CD, Plane, branching, agent tracking"
 echo ""
 echo "**Test-Rig-Specific (only for ~/projects/test-rig/):**"
 echo "- test-rig - Project architecture, source structure, dev workflow"
