@@ -143,7 +143,7 @@ WS_REDIS_DB=1
 EVENT_BUS_URL=http://flowmaster-event-bus-service:9013
 PROCESS_DESIGN_SERVICE_URL=http://flowmaster-process-design-service:9003
 HUMAN_TASK_SERVICE_URL=http://flowmaster-human-task-service:9006
-AI_AGENT_SERVICE_URL=http://flowmaster-ai-agent-service:9001
+AI_AGENT_SERVICE_URL=http://flowmaster-ai-agent-service:9007
 JWT_SECRET_KEY=flowmaster-jwt-secret-2025-secure-key
 JWT_ALGORITHM=HS256
 CORS_ORIGINS=http://localhost:3000,http://localhost:3001,http://localhost:9000
@@ -305,7 +305,7 @@ ARANGO_PORT=8529
 ARANGO_USER=root
 ARANGO_PASSWORD=flowmaster25!
 ARANGO_DATABASE=flowmaster
-AI_AGENT_SERVICE_URL=http://flowmaster-ai-agent-service:9001
+AI_AGENT_SERVICE_URL=http://flowmaster-ai-agent-service:9007
 LLM_MODEL_PRIMARY=google/gemini-2.0-flash-001
 LLM_MODEL_FALLBACK=openai/gpt-3.5-turbo
 LLM_TEMPERATURE=0.3
@@ -328,13 +328,13 @@ CORS_ORIGINS=*
 - **Document Processing**: Max 50MB files, 1000-char chunks with 100-char overlap
 - **Confidence**: Minimum 0.7 threshold for AI-extracted patterns
 
-### AI Agent Service (Port 9001)
+### AI Agent Service (Port 9007)
 ```
 APP_NAME=flowmaster-ai-agent-service
 APP_ENV=development
 APP_DEBUG=true
 APP_HOST=0.0.0.0
-APP_PORT=9001
+APP_PORT=9007
 DATABASE_URL=postgresql+asyncpg://fm_agent_user:fm_agent_secure_2025@ai-agent-postgres:5432/flowmaster
 ARANGO_HOST=monolith-arangodb
 ARANGO_PORT=8529
@@ -376,16 +376,17 @@ DXG_ENVIRONMENT=development
 - **LLM**: OpenAI GPT-4, temperature 0.3
 - **Database**: ArangoDB (walks workflow graph for context)
 
-### Engage App (Port 3010)
+### Engage App (Port 3001)
 ```
 NEXT_PUBLIC_DXG_API_URL=http://localhost:8005/api/v1
 DXG_API_URL=http://localhost:8005/api/v1
 NEXT_PUBLIC_API_URL=http://localhost:9000
-PORT=3010
+PORT=3001
 ```
 - **Purpose**: Employee-facing task execution with DXG integration
 - **Runtime**: Next.js 16
 - **DXG**: Both public (client) and server-side URLs needed
+- **Note**: Canonical port per PORT_REGISTRY (R25-R29)
 
 ### SDX API
 ```
@@ -463,26 +464,31 @@ DB 5: Task caching (Human Task Service)
 DB 6: Schedule caching (Scheduling Service)
 ```
 
-### Port Mapping
+### Port Mapping (Canonical - See PORT_REGISTRY.md for details)
 ```
-3010: Engage App
-3011: SDX Frontend (was 3010, conflict resolved)
-5173: Frontend (Vite)
+3000: Main Admin Frontend
+3001: Engage App (Employee Tasks - CANONICAL)
+3002: Process Designer
+3005: Manager App (Escalation Dashboard)
+5173: Frontend (Vite dev server)
 8005: DXG Backend
 8010: SDX API (demo server)
 8529: ArangoDB
 5432: PostgreSQL
 6379: Redis
 9000: API Gateway (Python/FastAPI)
-9001: AI Agent Service
 9002: Document Intelligence
 9003: Process Design
 9005: Execution Engine
-9006: Human Task
+9006: Human Task Service
+9007: AI Agent Service (CANONICAL - moved from 9001)
 9008: Scheduling
 9010: WebSocket Gateway
-9011: Notification
+9011: DXG Service
 9013: Event Bus
+9014: Process Analytics
+9015: External Integration (CANONICAL - moved from 9014)
+9016: Agent Service
 9092: Kafka
 ```
 
