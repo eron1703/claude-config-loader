@@ -32,19 +32,20 @@ servers:
       - NEVER shut down OrbStack service globally
       - Only manage individual containers
 
-  demo-server:
+  dev-server:
     host: demo-server
     ip: 65.21.153.235
-    purpose: "PRIMARY DEVELOPMENT SERVER - FlowMaster microservices and infrastructure"
-    access: "SSH (see connection details below)"
-    platform: "Linux (K3S Kubernetes)"
-    credentials: "See GitLab CI/CD Variables: SSH_PRIVATE_KEY, DEMO_SERVER"
+    purpose: "PRIMARY DEV SERVER — CI/CD develop branches auto-deploy here, GitLab Runner lives here"
+    access: "SSH: demo-server (root, key: ~/.ssh/demo_server)"
+    platform: "Linux (K3S Kubernetes + Docker)"
+    credentials: "See GitLab CI/CD Variables: SSH_PRIVATE_KEY, DEV_SERVER"
+    ci_cd_role: "DEV environment — develop branch auto-deploy target"
     infrastructure:
-      kubernetes: "K3S (lightweight Kubernetes) with 60+ pods across 8 namespaces"
-      docker: "Docker containers for FlowMaster microservices"
+      kubernetes: "K3S v1.34.3 (monitoring namespace: Grafana, Prometheus, Loki)"
+      docker: "Docker containers for FlowMaster microservices and other services"
       reverse_proxy: "Nginx on port 80"
       monitoring: "Grafana (port 30080), Prometheus, Loki stack"
-      ci_cd: "GitLab CI/CD, GitLab Runner"
+      ci_cd: "GitLab Runner (flowmaster-demo-runner, docker executor, tags: docker/demo-server)"
     flowmaster_deployments:
       rebuild:
         path: "/opt/flowmaster-rebuild/"
@@ -219,90 +220,93 @@ servers:
         deployment: "Kubernetes (monitoring namespace)"
         purpose: "Log aggregation"
     notes: |
-      - THIS IS THE PRIMARY DEVELOPMENT SERVER FOR FLOWMASTER
-      - All FlowMaster microservices development happens here
-      - Configured in ~/.ssh/config with two access methods
-      - ben user: ssh demo-server (key: ~/.ssh/ben_demo)
-      - root user: ssh demo-server-root (key: ~/.ssh/id_ed25519_demo)
-      - CI/CD deploy key in GitLab (gitlab-ci-deploy)
+      - PRIMARY DEV SERVER — CI/CD develop branches auto-deploy here
+      - GitLab Runner (flowmaster-demo-runner) runs here
+      - SSH: demo-server or demo (root, key: ~/.ssh/demo_server)
       - Grafana monitoring: http://65.21.153.235:30080
       - Plane project management: http://65.21.153.235:8083
-      - Full K3S Kubernetes cluster with monitoring stack
+      - Agent telemetry: http://65.21.153.235:8099
+      - K3S for monitoring stack, Docker for application services
       - FlowMaster microservices on ports 9000-9011
-      - GitLab CI/CD NOT configured to auto-deploy here (manual development)
-      - Documentation: /opt/flowmaster-rebuild/, /opt/flowmaster-engage/
+      - All new projects deploy develop branch here
 
-  flowmaster-staging-server:
-    host: flowmaster-staging
+  staging-server:
+    host: ms-dev
     ip: 91.98.159.56
-    purpose: "FlowMaster STAGING AND DEVELOP deployment server (GitLab CI auto-deploy)"
-    access: "SSH (key from GitLab CI/CD: SSH_PRIVATE_KEY)"
+    purpose: "STAGING SERVER — staging branches auto-deploy here"
+    access: "SSH: ms-dev (root, key: ~/.ssh/id_rsa)"
     platform: "Ubuntu Server"
-    credentials: "GitLab CI/CD Variables: SSH_PRIVATE_KEY, STAGING_DEV_SERVER"
+    credentials: "GitLab CI/CD Variables: SSH_PRIVATE_KEY, STAGING_SERVER"
+    ci_cd_role: "STAGING environment — staging branch auto-deploy target"
     infrastructure:
       runtime: "Docker + Docker Compose"
       web_server: "Nginx (reverse proxy + SSL termination via Let's Encrypt)"
-      ci_cd: "GitLab CI/CD auto-deploy from develop and staging branches"
+      gitlab_runner: "NONE — runner is on dev server (65.21.153.235)"
     deployments:
-      develop:
-        path: "/opt/flowmaster-microservices-develop/"
-        branch: "develop"
-        trigger: "Auto-deploy on push to develop branch"
-        domain: "dev.flow-master.ai"
-        compose_file: "docker-compose.integration.yml"
       staging:
-        path: "/opt/flowmaster-microservices-staging/"
+        path: "/opt/<project>-staging/"
         branch: "staging"
         trigger: "Auto-deploy on push to staging branch"
         domain: "staging.flow-master.ai"
         compose_file: "docker-compose.integration.yml"
+    existing_dirs:
+      - "/opt/flowmaster-microservices-develop/"
+      - "/opt/flowmaster-microservices-staging/"
+      - "/opt/flowmaster-frontend/"
+      - "/opt/test-rig/"
     connection:
       user_root:
         hostname: 91.98.159.56
         user: root
         port: 22
-        key_source: "GitLab CI/CD: SSH_PRIVATE_KEY"
-        connect: "ssh root@91.98.159.56"
+        key: "~/.ssh/id_rsa"
+        ssh_alias: "ms-dev"
     notes: |
-      - GitLab CI/CD auto-deploys develop and staging branches to this server
-      - SSH key stored in GitLab CI/CD variable SSH_PRIVATE_KEY
-      - Each service has its own GitLab CI pipeline
-      - Uses docker-compose.integration.yml for deployments
-      - SSL certificates managed by Let's Encrypt / certbot
-      - Variable in GitLab CI: STAGING_DEV_SERVER=91.98.159.56
+      - STAGING ENVIRONMENT — staging branches auto-deploy here
+      - Docker Compose for deployments
+      - SSL via Let's Encrypt / certbot
+      - GitLab CI variable: STAGING_SERVER=91.98.159.56
 
-  flowmaster-production-server:
-    host: flowmaster-prod
+  production-server:
+    host: server
     ip: 91.99.237.14
-    purpose: "FlowMaster PRODUCTION deployment server (manual deploy only)"
-    access: "SSH (key from GitLab CI/CD: SSH_PRIVATE_KEY)"
+    purpose: "PRODUCTION SERVER — main branch manual deploy only"
+    access: "SSH: server (ben) or root-server (root), key: ~/.ssh/eron1703_duckdns"
     platform: "Ubuntu Server"
     credentials: "GitLab CI/CD Variables: SSH_PRIVATE_KEY, PRODUCTION_SERVER"
+    ci_cd_role: "PRODUCTION environment — main branch manual deploy only"
     infrastructure:
       runtime: "Docker + Docker Compose"
       web_server: "Nginx (reverse proxy + SSL termination via Let's Encrypt)"
-      ci_cd: "GitLab CI/CD MANUAL deploy only (safety gate)"
+      other: "Dokku, Portainer (9443)"
+      gitlab_runner: "NONE — runner is on dev server (65.21.153.235)"
     deployments:
       production:
-        path: "/opt/flowmaster-microservices/"
-        branch: "production"
+        path: "/opt/<project>/"
+        branch: "main"
         trigger: "MANUAL trigger only (when: manual in GitLab CI)"
         domain: "app.flow-master.ai"
         compose_file: "docker-compose.integration.yml"
     connection:
+      user_ben:
+        hostname: 91.99.237.14
+        user: ben
+        port: 22
+        key: "~/.ssh/eron1703_duckdns"
+        ssh_alias: "server"
       user_root:
         hostname: 91.99.237.14
         user: root
         port: 22
-        key_source: "GitLab CI/CD: SSH_PRIVATE_KEY"
-        connect: "ssh root@91.99.237.14"
+        key: "~/.ssh/eron1703_duckdns"
+        ssh_alias: "root-server"
     notes: |
-      - GitLab CI/CD requires MANUAL approval for production deployments
-      - SSH key stored in GitLab CI/CD variable SSH_PRIVATE_KEY
-      - Production branch protected - manual deploy only
-      - Uses docker-compose.integration.yml for deployments
-      - SSL certificates managed by Let's Encrypt / certbot
-      - Variable in GitLab CI: PRODUCTION_SERVER=91.99.237.14
+      - PRODUCTION ENVIRONMENT — main branch manual deploy only
+      - Also used as personal dev server for manual SSH work
+      - Projects dir for manual work: /srv/projects/
+      - Docker Compose for deployments
+      - SSL via Let's Encrypt / certbot
+      - GitLab CI variable: PRODUCTION_SERVER=91.99.237.14
 
 # Cloud Resources
 cloud:

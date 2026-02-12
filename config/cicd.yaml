@@ -53,33 +53,42 @@ pipelines:
       - "gitlab.com/flow-master/flowmaster-engage"
       - "Individual service repos with GitLab CI"
     triggers:
-      - "Push to develop branch → auto-deploy to staging server"
-      - "Push to staging branch → auto-deploy to staging server"
-      - "Push to production branch → MANUAL deploy to production server"
+      - "Push to develop branch → auto-deploy to dev server (65.21.153.235)"
+      - "Push to staging branch → auto-deploy to staging server (91.98.159.56)"
+      - "Push to main branch → MANUAL deploy to production server (91.99.237.14)"
     stages:
       - test (Python: black, flake8, pytest)
       - build (Docker image build)
       - deploy (SSH deploy to target server)
     deployment_targets:
       develop:
-        server: "91.98.159.56 (STAGING_DEV_SERVER)"
-        path: "/opt/flowmaster-microservices-develop/"
-        domain: "dev.flow-master.ai"
+        server: "65.21.153.235 (DEV_SERVER)"
+        path: "/opt/<project>-develop/"
         trigger: "Auto-deploy on push to develop"
+        runtime: "Docker containers (K3S available but services use Docker)"
       staging:
-        server: "91.98.159.56 (STAGING_DEV_SERVER)"
-        path: "/opt/flowmaster-microservices-staging/"
+        server: "91.98.159.56 (STAGING_SERVER)"
+        path: "/opt/<project>-staging/"
         domain: "staging.flow-master.ai"
         trigger: "Auto-deploy on push to staging"
+        runtime: "Docker Compose"
       production:
         server: "91.99.237.14 (PRODUCTION_SERVER)"
-        path: "/opt/flowmaster-microservices/"
+        path: "/opt/<project>/"
         domain: "app.flow-master.ai"
         trigger: "MANUAL approval required (when: manual)"
+        runtime: "Docker Compose"
     ci_variables:
       - "SSH_PRIVATE_KEY (deploy key)"
-      - "STAGING_DEV_SERVER=91.98.159.56"
+      - "DEV_SERVER=65.21.153.235"
+      - "STAGING_SERVER=91.98.159.56"
       - "PRODUCTION_SERVER=91.99.237.14"
+    gitlab_runner:
+      name: "flowmaster-demo-runner"
+      location: "65.21.153.235 (dev server)"
+      executor: "docker"
+      tags: ["docker", "demo-server"]
+      version: "18.8.0"
     service_ports:
       api_gateway: 9000
       auth_service: 9001
@@ -93,11 +102,12 @@ pipelines:
       notification: 9011
     notes: |
       - Each microservice has its own GitLab CI/CD pipeline
-      - Auto-deploy to develop and staging environments
-      - Production requires manual approval for safety
-      - Uses docker-compose.integration.yml for deployments
-      - Primary dev server: 65.21.153.235 (NOT in CI/CD, manual development)
-      - GitLab Runner handles automated deployments
+      - develop → dev server (65.21.153.235) — auto-deploy
+      - staging → staging server (91.98.159.56) — auto-deploy
+      - main → production server (91.99.237.14) — MANUAL deploy only
+      - GitLab Runner runs on dev server (65.21.153.235)
+      - Dev server uses Docker containers (K3S cluster also present)
+      - Staging/Production use Docker Compose
 
   dxg:
     platform: github_actions
@@ -125,57 +135,81 @@ pipelines:
       - build
     notes: "Secure data exchange, uses external ArangoDB"
 
-# Deployment Targets
+# Deployment Targets — 3-Environment Model
+#
+# DEV:        65.21.153.235  — auto-deploy develop branch, GitLab Runner lives here
+# STAGING:    91.98.159.56   — auto-deploy staging branch
+# PRODUCTION: 91.99.237.14   — manual deploy main branch only
+#
 deployments:
-  flowmaster_develop:
+  dev_server:
+    platform: "Hetzner Cloud VPS (65.21.153.235)"
+    method: "Docker containers (K3S cluster also available)"
+    url: "http://65.21.153.235:9009 (flowmaster frontend)"
+    trigger: "Auto-deploy on push to develop branch"
+    deployment_paths:
+      - "/opt/flowmaster-rebuild/ (FlowMaster microservices)"
+      - "/opt/flowmaster-engage/ (engage project)"
+      - "/opt/flowmaster-manager/ (management tools)"
+      - "/opt/<project>-develop/ (new projects)"
+    ports: "9000-9011 (FlowMaster microservices)"
+    infrastructure:
+      gitlab_runner: "flowmaster-demo-runner (docker executor, tags: docker, demo-server)"
+      kubernetes: "K3S v1.34.3 (monitoring namespace: Grafana, Prometheus, Loki)"
+      monitoring: "http://65.21.153.235:30080 (Grafana)"
+      plane: "http://65.21.153.235:8083 (Plane CE v1.2.1)"
+      agent_chat: "http://65.21.153.235:8099 (agent telemetry)"
+    notes: |
+      - PRIMARY DEVELOPMENT SERVER — all CI/CD develop branches deploy here
+      - GitLab Runner runs here — executes all CI/CD jobs
+      - Docker containers for services (NOT docker-compose for deployments)
+      - K3S for monitoring stack (Grafana, Prometheus, Loki)
+      - Plane project management deployed here
+      - SSH: demo-server (root, key: ~/.ssh/demo_server)
+
+  staging_server:
     platform: "Hetzner Cloud VPS (91.98.159.56)"
     method: docker_compose
-    url: "https://dev.flow-master.ai"
-    trigger: "Automatic on push to develop branch"
-    deployment_path: "/opt/flowmaster-microservices-develop/"
+    trigger: "Auto-deploy on push to staging branch"
+    deployment_paths:
+      - "/opt/flowmaster-microservices-staging/"
+      - "/opt/<project>-staging/ (new projects)"
+    domain: "staging.flow-master.ai"
     compose_file: "docker-compose.integration.yml"
-    notes: "GitLab CI auto-deploys each microservice separately"
+    infrastructure:
+      runtime: "Docker + Docker Compose"
+      web_server: "Nginx (reverse proxy + SSL via Let's Encrypt)"
+      gitlab_runner: "NONE — runner is on dev server"
+    notes: |
+      - STAGING ENVIRONMENT — staging branches auto-deploy here
+      - Docker Compose for deployments
+      - SSH: ms-dev (root, key: ~/.ssh/id_rsa)
 
-  flowmaster_staging:
-    platform: "Hetzner Cloud VPS (91.98.159.56)"
-    method: docker_compose
-    url: "https://staging.flow-master.ai"
-    trigger: "Automatic on push to staging branch"
-    deployment_path: "/opt/flowmaster-microservices-staging/"
-    compose_file: "docker-compose.integration.yml"
-    notes: "GitLab CI auto-deploys each microservice separately"
-
-  flowmaster_production:
+  production_server:
     platform: "Hetzner Cloud VPS (91.99.237.14)"
     method: docker_compose
     url: "https://app.flow-master.ai"
-    trigger: "Manual approval required"
-    deployment_path: "/opt/flowmaster-microservices/"
+    trigger: "MANUAL approval required (when: manual in GitLab CI)"
+    deployment_paths:
+      - "/opt/flowmaster-microservices/"
+      - "/opt/<project>/ (new projects)"
+    domain: "app.flow-master.ai"
     compose_file: "docker-compose.integration.yml"
     approval_required: true
-    notes: "Production deployment requires manual trigger in GitLab CI (when: manual)"
-
-  flowmaster_dev_server:
-    platform: "Hetzner Cloud VPS (65.21.153.235)"
-    method: "docker_compose + kubernetes"
-    url: "http://65.21.153.235:9009 (frontend)"
-    trigger: "Manual development - NOT in CI/CD pipeline"
-    deployment_paths:
-      - "/opt/flowmaster-rebuild/ (main microservices)"
-      - "/opt/flowmaster-engage/ (engage project)"
-      - "/opt/flowmaster-manager/ (management tools)"
-    ports: "9000-9011 (microservices)"
+    infrastructure:
+      runtime: "Docker + Docker Compose"
+      web_server: "Nginx (reverse proxy + SSL via Let's Encrypt)"
+      other: "Dokku, Portainer (9443)"
     notes: |
-      - PRIMARY DEVELOPMENT SERVER
-      - Manual development, not CI/CD automated
-      - K3S Kubernetes + Docker containers
-      - Grafana monitoring: http://65.21.153.235:30080
-      - Plane PM: http://65.21.153.235:8083
+      - PRODUCTION ENVIRONMENT — main branch manual deploy only
+      - Also used as personal dev server (SSH alias: server/root-server)
+      - SSH: server (ben) or root-server (root), key: ~/.ssh/eron1703_duckdns
+      - Projects dir for manual work: /srv/projects/
 
   local:
     method: docker_compose
-    trigger: "Manual: docker-compose up"
-    notes: "Local development via OrbStack on macOS"
+    trigger: "Manual: docker compose up"
+    notes: "Local development via OrbStack on macOS (NOT Docker Desktop)"
 
 # Secrets Management
 secrets:
