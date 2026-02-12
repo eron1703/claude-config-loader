@@ -45,18 +45,59 @@ pipelines:
       - docker-build
     notes: "HCB-Consulting-ME org repo, modular architecture with workers"
 
-  flowmaster:
-    platform: github_actions
-    config_file: .github/workflows/ci.yml (if exists)
-    repo: https://github.com/HCB-Consulting-ME/ea-mcp
+  flowmaster-microservices:
+    platform: gitlab_ci
+    config_file: .gitlab-ci.yml
+    repo: gitlab.com/flow-master/* (multiple repos per microservice)
+    primary_repos:
+      - "gitlab.com/flow-master/flowmaster-engage"
+      - "Individual service repos with GitLab CI"
     triggers:
-      - "Push to main"
-      - "Pull requests"
+      - "Push to develop branch → auto-deploy to staging server"
+      - "Push to staging branch → auto-deploy to staging server"
+      - "Push to production branch → MANUAL deploy to production server"
     stages:
-      - lint
-      - test
-      - build
-    notes: "Large microservices system, multiple apps"
+      - test (Python: black, flake8, pytest)
+      - build (Docker image build)
+      - deploy (SSH deploy to target server)
+    deployment_targets:
+      develop:
+        server: "91.98.159.56 (STAGING_DEV_SERVER)"
+        path: "/opt/flowmaster-microservices-develop/"
+        domain: "dev.flow-master.ai"
+        trigger: "Auto-deploy on push to develop"
+      staging:
+        server: "91.98.159.56 (STAGING_DEV_SERVER)"
+        path: "/opt/flowmaster-microservices-staging/"
+        domain: "staging.flow-master.ai"
+        trigger: "Auto-deploy on push to staging"
+      production:
+        server: "91.99.237.14 (PRODUCTION_SERVER)"
+        path: "/opt/flowmaster-microservices/"
+        domain: "app.flow-master.ai"
+        trigger: "MANUAL approval required (when: manual)"
+    ci_variables:
+      - "SSH_PRIVATE_KEY (deploy key)"
+      - "STAGING_DEV_SERVER=91.98.159.56"
+      - "PRODUCTION_SERVER=91.99.237.14"
+    service_ports:
+      api_gateway: 9000
+      auth_service: 9001
+      document_intelligence: 9002
+      process_design: 9003
+      human_task: 9006
+      ai_agent: 9007
+      scheduling: 9008
+      frontend: 9009
+      websocket_gateway: 9010
+      notification: 9011
+    notes: |
+      - Each microservice has its own GitLab CI/CD pipeline
+      - Auto-deploy to develop and staging environments
+      - Production requires manual approval for safety
+      - Uses docker-compose.integration.yml for deployments
+      - Primary dev server: 65.21.153.235 (NOT in CI/CD, manual development)
+      - GitLab Runner handles automated deployments
 
   dxg:
     platform: github_actions
@@ -86,23 +127,55 @@ pipelines:
 
 # Deployment Targets
 deployments:
-  # staging:
-  #   platform: aws | gcp | azure | digitalocean
-  #   method: docker | kubernetes | serverless
-  #   url: https://staging.example.com
-  #   trigger: "Automatic on merge to main"
-  #
-  # production:
-  #   platform: aws
-  #   method: kubernetes
-  #   url: https://example.com
-  #   trigger: "Manual approval required"
-  #   approval_required: true
+  flowmaster_develop:
+    platform: "Hetzner Cloud VPS (91.98.159.56)"
+    method: docker_compose
+    url: "https://dev.flow-master.ai"
+    trigger: "Automatic on push to develop branch"
+    deployment_path: "/opt/flowmaster-microservices-develop/"
+    compose_file: "docker-compose.integration.yml"
+    notes: "GitLab CI auto-deploys each microservice separately"
+
+  flowmaster_staging:
+    platform: "Hetzner Cloud VPS (91.98.159.56)"
+    method: docker_compose
+    url: "https://staging.flow-master.ai"
+    trigger: "Automatic on push to staging branch"
+    deployment_path: "/opt/flowmaster-microservices-staging/"
+    compose_file: "docker-compose.integration.yml"
+    notes: "GitLab CI auto-deploys each microservice separately"
+
+  flowmaster_production:
+    platform: "Hetzner Cloud VPS (91.99.237.14)"
+    method: docker_compose
+    url: "https://app.flow-master.ai"
+    trigger: "Manual approval required"
+    deployment_path: "/opt/flowmaster-microservices/"
+    compose_file: "docker-compose.integration.yml"
+    approval_required: true
+    notes: "Production deployment requires manual trigger in GitLab CI (when: manual)"
+
+  flowmaster_dev_server:
+    platform: "Hetzner Cloud VPS (65.21.153.235)"
+    method: "docker_compose + kubernetes"
+    url: "http://65.21.153.235:9009 (frontend)"
+    trigger: "Manual development - NOT in CI/CD pipeline"
+    deployment_paths:
+      - "/opt/flowmaster-rebuild/ (main microservices)"
+      - "/opt/flowmaster-engage/ (engage project)"
+      - "/opt/flowmaster-manager/ (management tools)"
+    ports: "9000-9011 (microservices)"
+    notes: |
+      - PRIMARY DEVELOPMENT SERVER
+      - Manual development, not CI/CD automated
+      - K3S Kubernetes + Docker containers
+      - Grafana monitoring: http://65.21.153.235:30080
+      - Plane PM: http://65.21.153.235:8083
 
   local:
     method: docker_compose
     trigger: "Manual: docker-compose up"
-    notes: "All development happens locally"
+    notes: "Local development via OrbStack on macOS"
 
 # Secrets Management
 secrets:
@@ -124,15 +197,26 @@ secrets:
 
 # Monitoring & Alerts
 monitoring:
-  # production:
-  #   platform: datadog | newrelic | prometheus
-  #   dashboards:
-  #     - API Performance
-  #     - Error Rates
-  #     - Infrastructure
-  #   alerts:
-  #     - Error rate > 1%
-  #     - Response time > 500ms
+  flowmaster_dev_server:
+    platform: "Grafana + Prometheus + Loki"
+    grafana_url: "http://65.21.153.235:30080"
+    deployment: "Kubernetes (monitoring namespace)"
+    dashboards:
+      - "API Performance"
+      - "Container Resources"
+      - "Infrastructure Metrics"
+      - "Application Logs (via Loki)"
+    access: "Direct browser access, no auth required for viewing"
+    notes: "Monitors FlowMaster microservices on dev server"
+
+  plane_pm:
+    platform: "Plane CE"
+    url: "http://65.21.153.235:8083"
+    deployment: "Docker Compose + Kubernetes"
+    workspace: "flowmaster"
+    project: "FM (FlowMaster)"
+    mcp_server: "http://65.21.153.235:8012"
+    notes: "Project management and task tracking for FlowMaster team"
 
 # Best Practices
 best_practices:

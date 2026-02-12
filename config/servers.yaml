@@ -35,37 +35,64 @@ servers:
   demo-server:
     host: demo-server
     ip: 65.21.153.235
-    purpose: "Demo/staging server for testing and demos"
+    purpose: "PRIMARY DEVELOPMENT SERVER - FlowMaster microservices and infrastructure"
     access: "SSH (see connection details below)"
     platform: "Linux (K3S Kubernetes)"
     credentials: "See GitLab CI/CD Variables: SSH_PRIVATE_KEY, DEMO_SERVER"
     infrastructure:
       kubernetes: "K3S (lightweight Kubernetes) with 60+ pods across 8 namespaces"
-      containers: "13 active Docker containers"
+      docker: "Docker containers for FlowMaster microservices"
       reverse_proxy: "Nginx on port 80"
-      monitoring: "Grafana, Prometheus, Loki stack"
-      ci_cd: "GitLab Runner, Jenkins"
-    services:
-      - "arangodb-main:8529 (used by engage project and SDX)"
+      monitoring: "Grafana (port 30080), Prometheus, Loki stack"
+      ci_cd: "GitLab CI/CD, GitLab Runner"
+    flowmaster_deployments:
+      rebuild:
+        path: "/opt/flowmaster-rebuild/"
+        description: "Main FlowMaster microservices development"
+        services:
+          - "flowmaster-frontend-nextjs:9009"
+          - "flowmaster-api-gateway-service:9000"
+          - "flowmaster-auth-service:9001"
+          - "flowmaster-document-intelligence-service:9002"
+          - "flowmaster-process-design-service:9003"
+          - "flowmaster-event-bus-service (restarting)"
+          - "flowmaster-execution-engine-service (restarting)"
+          - "flowmaster-human-task-service:9006"
+          - "flowmaster-ai-agent-service:9007"
+          - "flowmaster-scheduling-service:9008"
+          - "flowmaster-websocket-gateway-service:9010"
+          - "flowmaster-notification-service:9011"
+          - "flowmaster-auth-db:5433 (PostgreSQL)"
+          - "flowmaster-auth-redis:6380"
+      engage:
+        path: "/opt/flowmaster-engage/"
+        repo: "gitlab.com/flow-master/flowmaster-engage"
+        description: "FlowMaster Engage project"
+      manager:
+        path: "/opt/flowmaster-manager/"
+        description: "FlowMaster management tools"
+      tests:
+        path: "/opt/flowmaster-tests/"
+        description: "FlowMaster testing infrastructure"
+      deployments:
+        path: "/opt/flowmaster-deployments/"
+        description: "Deployment scripts and configurations"
+    other_services:
+      - "arangodb-main:8529 (shared: Engage, SDX)"
       - "sdx-mcp-server:8011 (Plane MCP Server - 40 tools)"
       - "sdx-backend:8010"
       - "sdx-frontend:3010"
-      - "flowmaster-backend:8000"
-      - "flowmaster-frontend:3000"
-      - "guard-mobile-backend:8004"
-      - "employee-backend:8001"
-      - "employee-frontend:3001"
       - "plane-web:8083 (Plane Frontend Web UI)"
       - "plane-api:8012 (Plane MCP Server)"
     open_ports:
       - "80 (Nginx reverse proxy)"
-      - "8000 (Flowmaster Backend)"
-      - "8004 (Guard Mobile Backend)"
-      - "8010 (SDX Backend)"
-      - "8011 (SDX MCP Server)"
+      - "9000-9011 (FlowMaster microservices)"
+      - "30080 (Grafana monitoring)"
+      - "8010-8012 (SDX services)"
       - "8529 (ArangoDB)"
-      - "8012 (Plane MCP Server)"
       - "8083 (Plane Web UI)"
+      - "5433 (FlowMaster Auth DB)"
+      - "6380 (FlowMaster Auth Redis)"
     hetzner_firewall:
       enabled: true
       note: "Server uses Hetzner Cloud Firewall for network security"
@@ -178,70 +205,104 @@ servers:
         - "irtiza.s2918@gmail.com"
         - "muhammadsadiqrajani@gmail.com"
         - "ar.raza5092@gmail.com"
+    monitoring:
+      grafana:
+        url: "http://65.21.153.235:30080"
+        port: 30080
+        deployment: "Kubernetes (monitoring namespace)"
+        service: "grafana (NodePort)"
+        access: "Browser - no auth required for viewing"
+      prometheus:
+        deployment: "Kubernetes (monitoring namespace)"
+        service: "prometheus-grafana"
+      loki:
+        deployment: "Kubernetes (monitoring namespace)"
+        purpose: "Log aggregation"
     notes: |
+      - THIS IS THE PRIMARY DEVELOPMENT SERVER FOR FLOWMASTER
+      - All FlowMaster microservices development happens here
       - Configured in ~/.ssh/config with two access methods
       - ben user: ssh demo-server (key: ~/.ssh/ben_demo)
       - root user: ssh demo-server-root (key: ~/.ssh/id_ed25519_demo)
       - CI/CD deploy key in GitLab (gitlab-ci-deploy)
-      - engage project connects to ArangoDB on this server
-      - SDX MCP Server connects to same ArangoDB instance (sdx database)
+      - Grafana monitoring: http://65.21.153.235:30080
+      - Plane project management: http://65.21.153.235:8083
       - Full K3S Kubernetes cluster with monitoring stack
-      - Used for demos and staging deployments
-      - Comprehensive documentation saved to ~/projects/plane-mcp-server/
+      - FlowMaster microservices on ports 9000-9011
+      - GitLab CI/CD NOT configured to auto-deploy here (manual development)
+      - Documentation: /opt/flowmaster-rebuild/, /opt/flowmaster-engage/
 
-  flowmaster-app-server:
-    host: flowmaster-app
+  flowmaster-staging-server:
+    host: flowmaster-staging
     ip: 91.98.159.56
-    purpose: "FlowMaster application server - all environments (dev, demo, staging, production)"
+    purpose: "FlowMaster STAGING AND DEVELOP deployment server (GitLab CI auto-deploy)"
     access: "SSH (key from GitLab CI/CD: SSH_PRIVATE_KEY)"
-    platform: "Ubuntu 24.04.3 LTS"
-    credentials: "GitLab CI/CD Variables: SSH_PRIVATE_KEY, SERVER_HOST"
+    platform: "Ubuntu Server"
+    credentials: "GitLab CI/CD Variables: SSH_PRIVATE_KEY, STAGING_DEV_SERVER"
     infrastructure:
       runtime: "Docker + Docker Compose"
       web_server: "Nginx (reverse proxy + SSL termination via Let's Encrypt)"
-      environments:
-        development:
-          domain: "dev.flow-master.ai"
-          frontend_port: 6000
-          backend_port: 6001
-          path: "/srv/flowmaster/dev/"
-          branch: "develop"
-        demo:
-          domain: "demo.flow-master.ai"
-          frontend_port: 5000
-          backend_port: 5001
-          path: "/srv/flowmaster/demo/"
-          branch: "demo"
-        staging:
-          domain: "staging.flow-master.ai"
-          frontend_port: 4000
-          backend_port: 4001
-          path: "/srv/flowmaster/staging/"
-          branch: "staging"
-        production:
-          domain: "app.flow-master.ai"
-          frontend_port: 3002
-          backend_port: 3001
-          path: "/opt/flowmaster-prod/"
-          branch: "production"
-    services:
-      - "FlowMaster Backend (FastAPI/Python)"
-      - "FlowMaster Frontend (React/Vite + Nginx)"
-      - "Nginx reverse proxy (SSL termination)"
+      ci_cd: "GitLab CI/CD auto-deploy from develop and staging branches"
+    deployments:
+      develop:
+        path: "/opt/flowmaster-microservices-develop/"
+        branch: "develop"
+        trigger: "Auto-deploy on push to develop branch"
+        domain: "dev.flow-master.ai"
+        compose_file: "docker-compose.integration.yml"
+      staging:
+        path: "/opt/flowmaster-microservices-staging/"
+        branch: "staging"
+        trigger: "Auto-deploy on push to staging branch"
+        domain: "staging.flow-master.ai"
+        compose_file: "docker-compose.integration.yml"
     connection:
       user_root:
         hostname: 91.98.159.56
         user: root
         port: 22
         key_source: "GitLab CI/CD: SSH_PRIVATE_KEY"
-        connect: "ssh -i ~/.ssh/id_ed25519_flowmaster_server root@91.98.159.56"
+        connect: "ssh root@91.98.159.56"
     notes: |
-      - All 4 FlowMaster environments run on this single server
+      - GitLab CI/CD auto-deploys develop and staging branches to this server
       - SSH key stored in GitLab CI/CD variable SSH_PRIVATE_KEY
-      - CI/CD deploys via GitLab Runner using this key
+      - Each service has its own GitLab CI pipeline
+      - Uses docker-compose.integration.yml for deployments
       - SSL certificates managed by Let's Encrypt / certbot
-      - Each environment has separate Docker Compose files
-      - Documentation: OneDrive > Documentation > Server > CICD_COMPREHENSIVE_GUIDE.md
+      - Variable in GitLab CI: STAGING_DEV_SERVER=91.98.159.56
+
+  flowmaster-production-server:
+    host: flowmaster-prod
+    ip: 91.99.237.14
+    purpose: "FlowMaster PRODUCTION deployment server (manual deploy only)"
+    access: "SSH (key from GitLab CI/CD: SSH_PRIVATE_KEY)"
+    platform: "Ubuntu Server"
+    credentials: "GitLab CI/CD Variables: SSH_PRIVATE_KEY, PRODUCTION_SERVER"
+    infrastructure:
+      runtime: "Docker + Docker Compose"
+      web_server: "Nginx (reverse proxy + SSL termination via Let's Encrypt)"
+      ci_cd: "GitLab CI/CD MANUAL deploy only (safety gate)"
+    deployments:
+      production:
+        path: "/opt/flowmaster-microservices/"
+        branch: "production"
+        trigger: "MANUAL trigger only (when: manual in GitLab CI)"
+        domain: "app.flow-master.ai"
+        compose_file: "docker-compose.integration.yml"
+    connection:
+      user_root:
+        hostname: 91.99.237.14
+        user: root
+        port: 22
+        key_source: "GitLab CI/CD: SSH_PRIVATE_KEY"
+        connect: "ssh root@91.99.237.14"
+    notes: |
+      - GitLab CI/CD requires MANUAL approval for production deployments
+      - SSH key stored in GitLab CI/CD variable SSH_PRIVATE_KEY
+      - Production branch protected - manual deploy only
+      - Uses docker-compose.integration.yml for deployments
+      - SSL certificates managed by Let's Encrypt / certbot
+      - Variable in GitLab CI: PRODUCTION_SERVER=91.99.237.14
 
 # Cloud Resources
 cloud:
