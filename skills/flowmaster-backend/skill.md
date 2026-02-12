@@ -50,13 +50,14 @@ Each service owns its database and communicates via Event Bus (async) and REST A
 - `PUT /tasks/{id}/assign` — Assign
 - `PUT /tasks/{id}/respond` — Submit response
 
-### 4. AI Agent Orchestration (Port 9006)
+### 4. AI Agent Orchestration (Port 9007)
 **Purpose:** Central LLM/agent orchestrator with routing, caching, metering
 **Tech:** Python + Express.js, PostgreSQL + Redis + ArangoDB
 **Image:** latest
 **Key Endpoints:**
 - `POST /agents/{id}/invoke` — Call LLM
 - `POST /agents/{id}/stream` — Stream response
+**Port Assignment Note:** Canonical registry assigns port 9007 (conflict resolution H1)
 
 ### 5. Document Intelligence (Port 9002)
 **Purpose:** Document → structured data, embeddings, searchable content
@@ -134,7 +135,7 @@ Each service owns its database and communicates via Event Bus (async) and REST A
 - `GET /analytics/dashboard` — Overview dashboard
 - `POST /analytics/reports` — Generate report
 
-### 15. External Integration (Port 9014)
+### 15. External Integration (Port 9015)
 **Purpose:** External system connectors, webhook management
 **Tech:** Python/FastAPI
 **Image:** r51-fix3 | **Reqs:** R51-R53
@@ -142,12 +143,14 @@ Each service owns its database and communicates via Event Bus (async) and REST A
 - `POST /integrations` — Register integration
 - `POST /integrations/{id}/execute` — Execute connector
 - `POST /webhooks` — Register webhook
+**Port Assignment Note:** Canonical registry assigns port 9015 (conflict resolution H2)
 
 ### 16. FlowMaster MCP Server (Port 9000)
 **Purpose:** Unified MCP gateway for AI agent access to FlowMaster + SDX
 **Tech:** Python/FastAPI
 **Image:** latest | **Reqs:** R54-R56
 **Key Endpoints:** MCP protocol (tool listing, tool execution)
+**Note:** Shares port with API Gateway (9000) when proxied through nginx
 
 ### 17. Legal Entity Service (Port 8014)
 **Purpose:** Organizational structure, legal entities, relationships
@@ -167,7 +170,7 @@ Each service owns its database and communicates via Event Bus (async) and REST A
 - `POST /rules/{id}/evaluate` — Evaluate rules
 - `GET /rules/{id}/versions` — Rule versions
 
-### 19. BAC Marketplace (Port 9015)
+### 19. BAC Marketplace (Port 9016)
 **Purpose:** Process marketplace — publish, download, share processes
 **Tech:** Python/FastAPI
 **Image:** r73 | **Reqs:** R73-R76
@@ -175,6 +178,7 @@ Each service owns its database and communicates via Event Bus (async) and REST A
 - `POST /marketplace/publish` — Publish process
 - `GET /marketplace/search` — Search marketplace
 - `POST /marketplace/{id}/install` — Install process
+**Port Assignment Note:** Uses 9016; Agent Service uses 9016 (see port registry for clarification)
 
 ---
 
@@ -222,10 +226,11 @@ Each service owns its database and communicates via Event Bus (async) and REST A
 **Image:** r27-r45 | **Reqs:** R25-R29, R45
 **Key Features:** DXG briefing, analytics widgets, AI chat, feedback capture
 
-### 25. Manager App (Port 3001)
+### 25. Manager App (Port 3005)
 **Purpose:** Agent escalation handling dashboard
 **Tech:** Next.js, React, TypeScript
 **Image:** r30 | **Reqs:** R30-R33
+**Port Assignment Note:** Canonical registry assigns port 3005 (conflict resolution H4)
 
 ### 26. Process Designer (Port 3002)
 **Purpose:** Visio-quality drag-and-drop BPMN editor
@@ -317,18 +322,80 @@ src/
 
 ---
 
+## Port Registry & Conflict Resolution
+
+**IMPORTANT:** All port assignments have been canonicalized in PORT_REGISTRY.md to resolve conflicts:
+
+### Conflicts Resolved
+
+| Issue | Resolution | Status |
+|-------|-----------|--------|
+| **H1: Port 9006** | Human Task Service (9006) + AI Agent Service (9007) | ✅ Resolved |
+| **H2: Port 9014** | Process Analytics (9014) + External Integration (9015) | ✅ Resolved |
+| **H3: Port 9000** | API Gateway (9000) canonical assignment | ✅ Resolved |
+| **H4: Port 3001** | Engage App (3001) + Manager App (3005) + Designer (3002) | ✅ Resolved |
+
+### Quick Port Reference
+
+**Core Services:**
+- `9000` - API Gateway (entrypoint)
+- `9002` - Document Intelligence
+- `9003` - Process Design
+- `9005` - Execution Engine
+- `9006` - Human Task Service
+- `9007` - AI Agent Service (NEW ASSIGNMENT)
+- `9008` - Scheduling
+- `9009` - Notifications
+- `9010` - WebSocket Gateway
+- `9011` - DXG Service
+- `9013` - Event Bus
+- `9014` - Process Analytics
+- `9015` - External Integration (NEW ASSIGNMENT)
+- `9016` - Agent Service
+
+**Authentication & Infrastructure:**
+- `8001` - Service Registry
+- `8002` - Authentication
+- `8009` - Knowledge Hub
+- `8014` - Legal Entity Service
+- `8018` - Business Rules Engine
+- `8019` - Process Views
+- `8020` - Process Versioning
+- `8021` - Process Linking
+
+**Frontends:**
+- `3000` - Main Frontend
+- `3001` - Engage App
+- `3002` - Process Designer
+- `3005` - Manager App
+
+**See PORT_REGISTRY.md for complete details**
+
+---
+
 ## When to Use This Skill
 
 1. **Building MCP server interactions** with FlowMaster APIs
 2. **Designing process workflows** — Process Design Service
 3. **Handling execution logic** — Execution Engine
 4. **Human tasks** — approval flows
-5. **AI/LLM integration** — AI Agent Service
+5. **AI/LLM integration** — AI Agent Service (9007)
 6. **Real-time updates** — WebSocket Gateway
 7. **Authentication** — JWT patterns
 8. **Event-driven architecture** — Event Bus topics
 9. **Document processing** — Document Intelligence
-10. **Process analytics** — dashboards and metrics
-11. **External integrations** — connectors and webhooks
+10. **Process analytics** — dashboards and metrics (9014)
+11. **External integrations** — connectors and webhooks (9015)
 12. **Business rules** — DMN decision tables
 13. **Process marketplace** — BAC publish/download
+
+---
+
+## Documentation References
+
+- **PORT_REGISTRY.md** - Canonical port assignments (THIS FILE'S COMPANION)
+- **CONFLICT RESOLUTIONS** - See PORT_REGISTRY.md sections H1-H4
+- **Service Updates Needed:**
+  - AI Agent Service: Update to port 9007
+  - External Integration: Update to port 9015
+  - Manager App: Update to port 3005

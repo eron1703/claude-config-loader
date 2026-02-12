@@ -387,6 +387,48 @@ Use this skill when you need to:
 9. **Understand AI agent integration** - See how agents are configured and executed
 10. **Track audit trails** - Access comprehensive audit logs and event history
 
+## Collection Ownership
+
+**Important**: Each collection has a designated owner service with defined access patterns. See `ARANGODB_ISOLATION_STRATEGY.md` for complete details.
+
+### Core Services
+
+| Collection | Owner Service | Port | Access Type |
+|------------|---------------|------|-------------|
+| process_def, node_def, data_definition | Process Service | 9001 | Owner (rw) |
+| execution_sessions, execution_instances | Execution Service | 9002 | Owner (rw) |
+| human_tasks, pending_human_tasks | Human Task Service | 9003 | Owner (rw) |
+| agent_profiles, agent_instances | AI Agent Service | 9004 | Owner (rw) |
+| schedules, schedule_executions | Scheduler Service | 9008 | Owner (rw) |
+| event_audit_log, event_schemas | Event Audit Service | 9010 | Owner (rw) |
+| llm_models, tenant_configurations | Configuration Service | 9012 | Owner (rw) |
+
+### SDX Collections (Separate Database)
+
+**Database**: `flowmaster_sdx` (isolated from core)
+
+| Collection | Owner Service | Port | Access Type |
+|------------|---------------|------|-------------|
+| sdx_datasources, sdx_schemas, sdx_tables | SDX Service | 9015 | Owner (rw) |
+| sdx_columns, sdx_connections, sdx_secrets | SDX Service | 9015 | Owner (rw) |
+| sdx_annotations, sdx_jobs, sdx_audit | SDX Service | 9015 | Owner (rw) |
+
+**Access Pattern**: SDX collections are isolated in separate database. Cross-service access via SDX Service API only.
+
+### Access Patterns
+
+- **Owner (rw)**: Full read/write access, schema management
+- **Reader (ro)**: Read-only via well-defined queries
+- **Writer (wo)**: Write-only (e.g., audit logs - append only)
+- **API Access**: Cross-service writes via service API (not direct DB access)
+
+**Reference**: See `ARANGODB_ISOLATION_STRATEGY.md` for:
+- Complete ownership matrix
+- Schema versioning system
+- Migration coordination
+- Database user permissions
+- Access control enforcement
+
 ## Development Notes
 
 - All documents use ArangoDB's standard `_id`, `_key`, and `_rev` fields
@@ -396,3 +438,6 @@ Use this skill when you need to:
 - Execution context is deeply nested in execution_sessions for complete state capture
 - The database uses automatic sharding (1 shard) with potential for horizontal scaling
 - Revision tracking enables full audit history and conflict resolution
+- **Schema Changes**: All schema modifications must follow migration coordination protocol (see ARANGODB_ISOLATION_STRATEGY.md)
+- **Cross-Service Access**: Use service APIs for cross-service data access, not direct database queries
+- **SDX Isolation**: SDX uses separate `flowmaster_sdx` database - no direct access from core services
