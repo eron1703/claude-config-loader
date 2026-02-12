@@ -94,6 +94,13 @@ claude-config-loader:
   repo: "See ~/.claude/.config-loader-path for install location"
   notes: "No services, configuration files only"
 
+rta-sidekick:
+  mock-remedy: 8100
+  backend: 8200
+  description: "AI-powered IT operations agent for RTA"
+  repo: ~/projects/rta-sidekick
+  notes: "Mock Remedy on 8100, Backend orchestration hub on 8200. Repos: rta-sidekick-mock-remedy, rta-sidekick-backend"
+
 claude-pod:
   health: 8013
   litellm-proxy-api: 4000
@@ -255,6 +262,11 @@ networks:
       - engage
     isolated: true
 
+  rta-sidekick-network:
+    projects:
+      - rta-sidekick
+    isolated: true
+
 # === PORT ALLOCATION GUIDELINES ===
 
 guidelines:
@@ -317,7 +329,9 @@ by_port:
   "8020": "engage (mcp-server)"
   "8021": "engage (collaboration)"
   "8022": "engage (preferences)"
+  "8100": "rta-sidekick (mock-remedy)"
   "8080": "resolver (netbox)"
+  "8200": "rta-sidekick (backend)"
   "8529": "resolver (arangodb), commander (arangodb), documentation (arangodb)"
   "8530": "resolver (arangodb web UI)"
   "8531": "flowmaster (arangodb)"
