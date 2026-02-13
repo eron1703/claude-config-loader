@@ -9,6 +9,9 @@ disable-model-invocation: true
 ## Communication
 Start responses: `[CONFIG] Skills: [list]` then `**BLUF: [answer]**`
 
+## Config-Loader
+- **MANDATORY**: ALL agents must load config-loader on startup. No agent operates without it.
+
 ## Quality
 - **CRITICAL: Test before claiming** - NEVER claim functionality is "deployed and live" without verification. Test via SSH curl, kubectl, etc. No Chrome control for server testing.
 - TDD: specs → tests → code → refactor
