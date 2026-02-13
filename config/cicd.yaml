@@ -53,41 +53,59 @@ pipelines:
       - "gitlab.com/flow-master/flowmaster-engage"
       - "Individual service repos with GitLab CI"
     triggers:
-      - "Push to develop branch → auto-deploy to dev server (65.21.153.235)"
-      - "Push to staging branch → auto-deploy to staging server (91.98.159.56)"
-      - "Push to main branch → MANUAL deploy to production server (91.99.237.14)"
+      - "Push to develop branch → auto-deploy to dev-01 (65.21.153.235)"
+      - "Push to staging branch → auto-deploy to dev-02 (91.98.159.56)"
+      - "Push to feature/* branch → auto-deploy to dev-03 (65.21.52.58)"
+      - "Push to main branch → MANUAL deploy to prod-01 (91.99.237.14)"
     stages:
       - test (Python: black, flake8, pytest)
       - build (Docker image build)
       - deploy (SSH deploy to target server)
     deployment_targets:
       develop:
-        server: "65.21.153.235 (DEV_SERVER)"
+        server: "65.21.153.235 (dev-01)"
         path: "/opt/<project>-develop/"
         trigger: "Auto-deploy on push to develop"
         runtime: "Docker containers (K3S available but services use Docker)"
+        databases: "Local ArangoDB, PostgreSQL, Redis"
       staging:
-        server: "91.98.159.56 (STAGING_SERVER)"
+        server: "91.98.159.56 (dev-02)"
         path: "/opt/<project>-staging/"
         domain: "staging.flow-master.ai"
         trigger: "Auto-deploy on push to staging"
         runtime: "Docker Compose"
+        databases: "Local ArangoDB, PostgreSQL, Redis"
+      feature:
+        server: "65.21.52.58 (dev-03)"
+        path: "/opt/<project>-feature/"
+        trigger: "Auto-deploy on push to feature/*"
+        runtime: "Docker Compose"
+        databases: "Local ArangoDB, PostgreSQL, Redis"
       production:
-        server: "91.99.237.14 (PRODUCTION_SERVER)"
+        server: "91.99.237.14 (prod-01)"
         path: "/opt/<project>/"
         domain: "app.flow-master.ai"
         trigger: "MANUAL approval required (when: manual)"
         runtime: "Docker Compose"
+    branch_to_server_mapping:
+      develop: "dev-01 (65.21.153.235)"
+      staging: "dev-02 (91.98.159.56)"
+      "feature/*": "dev-03 (65.21.52.58)"
+      main: "prod-01 (91.99.237.14)"
     ci_variables:
-      - "SSH_PRIVATE_KEY (deploy key)"
-      - "DEV_SERVER=65.21.153.235"
-      - "STAGING_SERVER=91.98.159.56"
-      - "PRODUCTION_SERVER=91.99.237.14"
+      - "DEV_SERVER_01_IP=65.21.153.235"
+      - "DEV_SERVER_02_IP=91.98.159.56"
+      - "DEV_SERVER_03_IP=65.21.52.58"
+      - "PROD_SERVER_IP=91.99.237.14"
+      - "DEV_01_SSH_KEY (deploy key for dev-01, key: ~/.ssh/demo_server)"
+      - "DEV_02_SSH_KEY (deploy key for dev-02, key: ~/.ssh/id_rsa)"
+      - "DEV_03_SSH_KEY (deploy key for dev-03, key: ~/.ssh/demo_server)"
+      - "PROD_SSH_KEY (deploy key for prod-01, key: ~/.ssh/eron1703_duckdns)"
     gitlab_runner:
       name: "flowmaster-demo-runner"
-      location: "65.21.153.235 (dev server)"
+      location: "65.21.153.235 (dev-01)"
       executor: "docker"
-      tags: ["docker", "demo-server"]
+      tags: ["docker", "dev-01"]
       version: "18.8.0"
     service_ports:
       api_gateway: 9000
@@ -102,12 +120,14 @@ pipelines:
       notification: 9011
     notes: |
       - Each microservice has its own GitLab CI/CD pipeline
-      - develop → dev server (65.21.153.235) — auto-deploy
-      - staging → staging server (91.98.159.56) — auto-deploy
-      - main → production server (91.99.237.14) — MANUAL deploy only
-      - GitLab Runner runs on dev server (65.21.153.235)
-      - Dev server uses Docker containers (K3S cluster also present)
-      - Staging/Production use Docker Compose
+      - develop → dev-01 (65.21.153.235) — auto-deploy
+      - staging → dev-02 (91.98.159.56) — auto-deploy
+      - feature/* → dev-03 (65.21.52.58) — auto-deploy
+      - main → prod-01 (91.99.237.14) — MANUAL deploy only
+      - GitLab Runner runs on dev-01 (65.21.153.235)
+      - All 3 dev servers have local databases (ArangoDB, PostgreSQL, Redis)
+      - dev-01 uses Docker containers (K3S cluster also present)
+      - dev-02, dev-03, prod-01 use Docker Compose
 
   dxg:
     platform: github_actions
@@ -135,15 +155,22 @@ pipelines:
       - build
     notes: "Secure data exchange, uses external ArangoDB"
 
-# Deployment Targets — 3-Environment Model
+# Deployment Targets — 4-Server Model (3 Dev + 1 Prod)
 #
-# DEV:        65.21.153.235  — auto-deploy develop branch, GitLab Runner lives here
-# STAGING:    91.98.159.56   — auto-deploy staging branch
-# PRODUCTION: 91.99.237.14   — manual deploy main branch only
+# dev-01:  65.21.153.235  | Helsinki    | CCX23 | develop branch    | FlowMaster, Plane, Grafana, Agent Chat, GitLab Runner
+# dev-02:  91.98.159.56   | Falkenstein | CCX23 | staging branch    | FlowMaster (staging/integration)
+# dev-03:  65.21.52.58    | Helsinki    | CCX23 | feature/* branches | FlowMaster (feature branches, experiments)
+# prod-01: 91.99.237.14   | Nuremberg   | CPX41 | main branch       | FlowMaster (production)
+#
+# Branch → Server Deployment Matrix:
+#   develop   → dev-01 (auto-deploy)
+#   staging   → dev-02 (auto-deploy)
+#   feature/* → dev-03 (auto-deploy)
+#   main      → prod-01 (MANUAL deploy only)
 #
 deployments:
-  dev_server:
-    platform: "Hetzner Cloud VPS (65.21.153.235)"
+  dev_01:
+    platform: "Hetzner Cloud CCX23 (65.21.153.235, Helsinki)"
     method: "Docker containers (K3S cluster also available)"
     url: "http://65.21.153.235:9009 (flowmaster frontend)"
     trigger: "Auto-deploy on push to develop branch"
@@ -153,22 +180,27 @@ deployments:
       - "/opt/flowmaster-manager/ (management tools)"
       - "/opt/<project>-develop/ (new projects)"
     ports: "9000-9011 (FlowMaster microservices)"
+    databases:
+      - "ArangoDB (local, port 8529)"
+      - "PostgreSQL (local, port 5433)"
+      - "Redis (local, port 6380)"
     infrastructure:
-      gitlab_runner: "flowmaster-demo-runner (docker executor, tags: docker, demo-server)"
+      gitlab_runner: "flowmaster-demo-runner (docker executor, tags: docker, dev-01)"
       kubernetes: "K3S v1.34.3 (monitoring namespace: Grafana, Prometheus, Loki)"
       monitoring: "http://65.21.153.235:30080 (Grafana)"
       plane: "http://65.21.153.235:8083 (Plane CE v1.2.1)"
       agent_chat: "http://65.21.153.235:8099 (agent telemetry)"
     notes: |
-      - PRIMARY DEVELOPMENT SERVER — all CI/CD develop branches deploy here
+      - PRIMARY DEV SERVER (dev-01) — develop branches auto-deploy here
+      - Hosts: FlowMaster, Plane, Grafana, Agent Chat, GitLab Runner
       - GitLab Runner runs here — executes all CI/CD jobs
       - Docker containers for services (NOT docker-compose for deployments)
       - K3S for monitoring stack (Grafana, Prometheus, Loki)
-      - Plane project management deployed here
-      - SSH: demo-server (root, key: ~/.ssh/demo_server)
+      - Local databases: ArangoDB, PostgreSQL, Redis
+      - SSH: dev-01 (root, key: ~/.ssh/demo_server)
 
-  staging_server:
-    platform: "Hetzner Cloud VPS (91.98.159.56)"
+  dev_02:
+    platform: "Hetzner Cloud CCX23 (91.98.159.56, Falkenstein)"
     method: docker_compose
     trigger: "Auto-deploy on push to staging branch"
     deployment_paths:
@@ -176,17 +208,45 @@ deployments:
       - "/opt/<project>-staging/ (new projects)"
     domain: "staging.flow-master.ai"
     compose_file: "docker-compose.integration.yml"
+    databases:
+      - "ArangoDB (local)"
+      - "PostgreSQL (local)"
+      - "Redis (local)"
     infrastructure:
       runtime: "Docker + Docker Compose"
       web_server: "Nginx (reverse proxy + SSL via Let's Encrypt)"
-      gitlab_runner: "NONE — runner is on dev server"
+      gitlab_runner: "NONE — runner is on dev-01"
     notes: |
-      - STAGING ENVIRONMENT — staging branches auto-deploy here
+      - SECONDARY DEV (dev-02) — staging/integration testing
+      - Hosts: FlowMaster (staging/integration testing)
+      - Local databases: ArangoDB, PostgreSQL, Redis
       - Docker Compose for deployments
-      - SSH: ms-dev (root, key: ~/.ssh/id_rsa)
+      - SSH: dev-02 (root, key: ~/.ssh/id_rsa)
 
-  production_server:
-    platform: "Hetzner Cloud VPS (91.99.237.14)"
+  dev_03:
+    platform: "Hetzner Cloud CCX23 (65.21.52.58, Helsinki)"
+    method: docker_compose
+    trigger: "Auto-deploy on push to feature/* branches"
+    deployment_paths:
+      - "/opt/<project>-feature/ (feature branch deployments)"
+    compose_file: "docker-compose.integration.yml"
+    databases:
+      - "ArangoDB (local)"
+      - "PostgreSQL (local)"
+      - "Redis (local)"
+    infrastructure:
+      runtime: "Docker + Docker Compose"
+      web_server: "Nginx (reverse proxy + SSL via Let's Encrypt)"
+      gitlab_runner: "NONE — runner is on dev-01"
+    notes: |
+      - TERTIARY DEV (dev-03) — feature branches and experiments
+      - Hosts: FlowMaster (feature branches, experiments)
+      - Local databases: ArangoDB, PostgreSQL, Redis
+      - Docker Compose for deployments
+      - SSH: dev-03 (root, key: ~/.ssh/demo_server)
+
+  prod_01:
+    platform: "Hetzner Cloud CPX41 (91.99.237.14, Nuremberg)"
     method: docker_compose
     url: "https://app.flow-master.ai"
     trigger: "MANUAL approval required (when: manual in GitLab CI)"
@@ -201,9 +261,10 @@ deployments:
       web_server: "Nginx (reverse proxy + SSL via Let's Encrypt)"
       other: "Dokku, Portainer (9443)"
     notes: |
-      - PRODUCTION ENVIRONMENT — main branch manual deploy only
-      - Also used as personal dev server (SSH alias: server/root-server)
-      - SSH: server (ben) or root-server (root), key: ~/.ssh/eron1703_duckdns
+      - PRODUCTION (prod-01) — main branch manual deploy only
+      - Hosts: FlowMaster (production)
+      - Also used as personal dev server (SSH alias: prod-01/prod-01-root)
+      - SSH: prod-01 (ben) or prod-01-root (root), key: ~/.ssh/eron1703_duckdns
       - Projects dir for manual work: /srv/projects/
 
   local:
@@ -231,7 +292,7 @@ secrets:
 
 # Monitoring & Alerts
 monitoring:
-  flowmaster_dev_server:
+  flowmaster_dev_01:
     platform: "Grafana + Prometheus + Loki"
     grafana_url: "http://65.21.153.235:30080"
     deployment: "Kubernetes (monitoring namespace)"
@@ -241,7 +302,7 @@ monitoring:
       - "Infrastructure Metrics"
       - "Application Logs (via Loki)"
     access: "Direct browser access, no auth required for viewing"
-    notes: "Monitors FlowMaster microservices on dev server"
+    notes: "Monitors FlowMaster microservices on dev-01"
 
   plane_pm:
     platform: "Plane CE"

@@ -32,13 +32,13 @@ servers:
       - NEVER shut down OrbStack service globally
       - Only manage individual containers
 
-  dev-server:
-    host: demo-server
+  dev-01:
+    host: dev-01
     ip: 65.21.153.235
-    purpose: "PRIMARY DEV SERVER — CI/CD develop branches auto-deploy here, GitLab Runner lives here"
-    access: "SSH: demo-server (root, key: ~/.ssh/demo_server)"
+    purpose: "PRIMARY DEV SERVER — FlowMaster, Plane, Grafana, Agent Chat, GitLab Runner"
+    access: "SSH: dev-01 (root, key: ~/.ssh/demo_server)"
     platform: "Linux (K3S Kubernetes + Docker)"
-    credentials: "See GitLab CI/CD Variables: SSH_PRIVATE_KEY, DEV_SERVER"
+    credentials: "See GitLab CI/CD Variables: DEV_01_SSH_KEY, DEV_SERVER_01_IP"
     ci_cd_role: "DEV environment — develop branch auto-deploy target"
     infrastructure:
       kubernetes: "K3S v1.34.3 (monitoring namespace: Grafana, Prometheus, Loki)"
@@ -105,26 +105,26 @@ servers:
         - "Port 8000-8083 (Application ports) - Configure as needed"
     connection:
       user_ben:
-        host: demo-server
+        host: dev-01
         hostname: 65.21.153.235
         user: ben
         port: 22
-        identity_file: ~/.ssh/ben_demo
-        connect: "ssh demo-server"
+        identity_file: ~/.ssh/demo_server
+        connect: "ssh dev-01"
       user_root:
-        host: demo-server-root
+        host: dev-01-root
         hostname: 65.21.153.235
         user: root
         port: 22
-        identity_file: ~/.ssh/id_ed25519_demo
-        connect: "ssh demo-server-root"
+        identity_file: ~/.ssh/demo_server
+        connect: "ssh dev-01-root"
       ci_cd_deploy:
         hostname: 65.21.153.235
         user: root
         port: 22
         key_type: ED25519
         identity: "gitlab-ci-deploy"
-        credentials: "GitLab CI/CD: SSH_PRIVATE_KEY"
+        credentials: "GitLab CI/CD: DEV_01_SSH_KEY"
     mcp_server:
       name: "SDX MCP Server"
       container: "sdx-mcp-server"
@@ -220,28 +220,33 @@ servers:
         deployment: "Kubernetes (monitoring namespace)"
         purpose: "Log aggregation"
     notes: |
-      - PRIMARY DEV SERVER — CI/CD develop branches auto-deploy here
-      - GitLab Runner (flowmaster-demo-runner) runs here
-      - SSH: demo-server or demo (root, key: ~/.ssh/demo_server)
+      - PRIMARY DEV SERVER (dev-01) — develop branches auto-deploy here
+      - Hosts: FlowMaster, Plane, Grafana, Agent Chat, GitLab Runner
+      - SSH: dev-01 (root, key: ~/.ssh/demo_server)
       - Grafana monitoring: http://65.21.153.235:30080
       - Plane project management: http://65.21.153.235:8083
       - Agent telemetry: http://65.21.153.235:8099
       - K3S for monitoring stack, Docker for application services
       - FlowMaster microservices on ports 9000-9011
+      - Local databases: ArangoDB, PostgreSQL, Redis
       - All new projects deploy develop branch here
 
-  staging-server:
-    host: ms-dev
+  dev-02:
+    host: dev-02
     ip: 91.98.159.56
-    purpose: "STAGING SERVER — staging branches auto-deploy here"
-    access: "SSH: ms-dev (root, key: ~/.ssh/id_rsa)"
-    platform: "Ubuntu Server"
-    credentials: "GitLab CI/CD Variables: SSH_PRIVATE_KEY, STAGING_SERVER"
-    ci_cd_role: "STAGING environment — staging branch auto-deploy target"
+    purpose: "SECONDARY DEV SERVER — staging/integration testing, FlowMaster staging"
+    access: "SSH: dev-02 (root, key: ~/.ssh/id_rsa)"
+    platform: "Ubuntu Server (Hetzner CCX23, Falkenstein)"
+    credentials: "GitLab CI/CD Variables: DEV_02_SSH_KEY, DEV_SERVER_02_IP"
+    ci_cd_role: "DEV-02 environment — staging branch auto-deploy target"
     infrastructure:
       runtime: "Docker + Docker Compose"
       web_server: "Nginx (reverse proxy + SSL termination via Let's Encrypt)"
-      gitlab_runner: "NONE — runner is on dev server (65.21.153.235)"
+      gitlab_runner: "NONE — runner is on dev-01 (65.21.153.235)"
+      databases:
+        - "ArangoDB (local instance)"
+        - "PostgreSQL (local instance)"
+        - "Redis (local instance)"
     deployments:
       staging:
         path: "/opt/<project>-staging/"
@@ -256,30 +261,70 @@ servers:
       - "/opt/test-rig/"
     connection:
       user_root:
+        host: dev-02
         hostname: 91.98.159.56
         user: root
         port: 22
         key: "~/.ssh/id_rsa"
-        ssh_alias: "ms-dev"
+        ssh_alias: "dev-02"
     notes: |
-      - STAGING ENVIRONMENT — staging branches auto-deploy here
+      - SECONDARY DEV INSTANCE (dev-02) — staging/integration testing
+      - Hosts: FlowMaster (staging/integration testing)
       - Docker Compose for deployments
+      - Local databases: ArangoDB, PostgreSQL, Redis
       - SSL via Let's Encrypt / certbot
-      - GitLab CI variable: STAGING_SERVER=91.98.159.56
+      - GitLab CI variable: DEV_SERVER_02_IP=91.98.159.56
 
-  production-server:
-    host: server
+  dev-03:
+    host: dev-03
+    ip: 65.21.52.58
+    purpose: "TERTIARY DEV SERVER — feature branches, experiments"
+    access: "SSH: dev-03 (root, key: ~/.ssh/demo_server)"
+    platform: "Ubuntu Server (Hetzner CCX23, Helsinki)"
+    credentials: "GitLab CI/CD Variables: DEV_03_SSH_KEY, DEV_SERVER_03_IP"
+    ci_cd_role: "DEV-03 environment — feature/* branch auto-deploy target"
+    infrastructure:
+      runtime: "Docker + Docker Compose"
+      web_server: "Nginx (reverse proxy + SSL termination via Let's Encrypt)"
+      gitlab_runner: "NONE — runner is on dev-01 (65.21.153.235)"
+      databases:
+        - "ArangoDB (local instance)"
+        - "PostgreSQL (local instance)"
+        - "Redis (local instance)"
+    deployments:
+      feature:
+        path: "/opt/<project>-feature/"
+        branch: "feature/*"
+        trigger: "Auto-deploy on push to feature/* branches"
+        compose_file: "docker-compose.integration.yml"
+    connection:
+      user_root:
+        host: dev-03
+        hostname: 65.21.52.58
+        user: root
+        port: 22
+        key: "~/.ssh/demo_server"
+        ssh_alias: "dev-03"
+    notes: |
+      - TERTIARY DEV INSTANCE (dev-03) — feature branches and experiments
+      - Hosts: FlowMaster (feature branches, experiments)
+      - Docker Compose for deployments
+      - Local databases: ArangoDB, PostgreSQL, Redis
+      - GitLab CI variable: DEV_SERVER_03_IP=65.21.52.58
+
+  prod-01:
+    host: prod-01
     ip: 91.99.237.14
-    purpose: "PRODUCTION SERVER — main branch manual deploy only"
-    access: "SSH: server (ben) or root-server (root), key: ~/.ssh/eron1703_duckdns"
-    platform: "Ubuntu Server"
-    credentials: "GitLab CI/CD Variables: SSH_PRIVATE_KEY, PRODUCTION_SERVER"
+    purpose: "PRODUCTION SERVER — main branch manual deploy only, FlowMaster production"
+    access: "SSH: prod-01 (ben) or prod-01-root (root), key: ~/.ssh/eron1703_duckdns"
+    platform: "Ubuntu Server (Hetzner CPX41, Nuremberg)"
+    credentials: "GitLab CI/CD Variables: PROD_SSH_KEY, PROD_SERVER_IP"
     ci_cd_role: "PRODUCTION environment — main branch manual deploy only"
     infrastructure:
       runtime: "Docker + Docker Compose"
       web_server: "Nginx (reverse proxy + SSL termination via Let's Encrypt)"
       other: "Dokku, Portainer (9443)"
-      gitlab_runner: "NONE — runner is on dev server (65.21.153.235)"
+      gitlab_runner: "NONE — runner is on dev-01 (65.21.153.235)"
     deployments:
       production:
         path: "/opt/<project>/"
@@ -289,24 +334,27 @@ servers:
         compose_file: "docker-compose.integration.yml"
     connection:
       user_ben:
+        host: prod-01
         hostname: 91.99.237.14
         user: ben
         port: 22
         key: "~/.ssh/eron1703_duckdns"
-        ssh_alias: "server"
+        ssh_alias: "prod-01"
       user_root:
+        host: prod-01-root
         hostname: 91.99.237.14
         user: root
         port: 22
         key: "~/.ssh/eron1703_duckdns"
-        ssh_alias: "root-server"
+        ssh_alias: "prod-01-root"
     notes: |
-      - PRODUCTION ENVIRONMENT — main branch manual deploy only
+      - PRODUCTION ENVIRONMENT (prod-01) — main branch manual deploy only
+      - Hosts: FlowMaster (production)
       - Also used as personal dev server for manual SSH work
       - Projects dir for manual work: /srv/projects/
       - Docker Compose for deployments
       - SSL via Let's Encrypt / certbot
-      - GitLab CI variable: PRODUCTION_SERVER=91.99.237.14
+      - GitLab CI variable: PROD_SERVER_IP=91.99.237.14
 
 # Cloud Resources
 cloud:

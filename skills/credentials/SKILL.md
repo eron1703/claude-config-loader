@@ -60,17 +60,17 @@ glab variable get HETZNER_API_TOKEN --group flow-master
 ### Hetzner Cloud API Token
 - **Location**: GitLab CI/CD group variable `HETZNER_API_TOKEN` (masked, protected)
 - **Group**: `flow-master` (ID: 122023679)
-- **Use for**: Managing demo server (65.21.153.235) firewall rules, server operations
+- **Use for**: Managing dev-01 (65.21.153.235) firewall rules, server operations
 - **API endpoint**: `https://api.hetzner.cloud/v1/`
 - **Auth header**: `Authorization: Bearer $HETZNER_API_TOKEN`
-- **Firewall ID**: 2269906 ("firewall-1") — attached to demo-server-001
+- **Firewall ID**: 2269906 ("firewall-1") — attached to dev-01
 - **Quick firewall check**: `curl -s -H "Authorization: Bearer $TOKEN" https://api.hetzner.cloud/v1/firewalls/2269906 | python3 -m json.tool`
 
 ### Grafana Monitoring
 - **Location**: GitLab CI/CD group variable `GRAFANA_ADMIN_PASSWORD` (masked, protected)
 - **Group**: `flow-master` (ID: 122023679)
 - **URL variable**: `GRAFANA_URL` (not masked, not protected)
-- **Dashboard**: http://65.21.153.235:3001
+- **Dashboard**: http://65.21.153.235:3001 (dev-01)
 - **Admin user**: `admin`
 - **Use for**: Viewing dashboards, managing alert rules, checking monitoring data
 - **Quick check**: `curl -s http://admin:$(glab variable get GRAFANA_ADMIN_PASSWORD --group flow-master)@65.21.153.235:3001/api/health`
@@ -92,7 +92,23 @@ glab variable get HETZNER_API_TOKEN --group flow-master
 - Bcrypt hash for `admin`: `$2b$12$3fqkA46LrHNNiXeXp668EukV2ED3QneA8AGgBlOf7OmfFooFVclWO`
 - Bcrypt hash for `Admin@123`: `$2b$12$HhniFOKLHA4UKkSU/5KTf.ywFNdMy76/uZxxFSAPp3WRCdK8ntc9S`
 
-**Login endpoint:** http://65.21.153.235/api/v1/auth/login
+**Login endpoint:** http://65.21.153.235/api/v1/auth/login (dev-01)
+
+### SSH Key Note
+- **dev-03** (65.21.52.58) is a new tertiary dev server for feature branches
+- dev-03 uses the same SSH key as dev-01 (`~/.ssh/demo_server`)
+
+### Team SSH Keys (all servers)
+| User | GL Variable (Private) | GL Variable (Public) | Servers |
+|------|----------------------|---------------------|---------|
+| irtiza | IRTIZA_SSH_KEY | IRTIZA_SSH_PUB | dev-01, dev-02, dev-03, prod-01 |
+| subhan | SUBHAN_SSH_KEY | SUBHAN_SSH_PUB | dev-01, dev-02, dev-03, prod-01 |
+| ali | ALI_SSH_KEY | ALI_SSH_PUB | dev-01, dev-02, dev-03, prod-01 |
+| fahad | FAHAD_SSH_KEY | FAHAD_SSH_PUB | dev-01, dev-02, dev-03, prod-01 |
+| engineering | ENGINEERING_SSH_KEY | ENGINEERING_SSH_PUB | dev-01, dev-02, dev-03, prod-01 |
+
+All users have sudo (NOPASSWD) and docker group access on all servers.
+SSH key type: ed25519
 
 ## Where are credentials stored?
 

@@ -1,0 +1,172 @@
+# FlowMaster Dev Server Docker Compose Overlay
+# Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+# Requires: .env.dev-01 / .env.dev-02 / .env.dev-03 loaded via --env-file
+#
+# Server mapping:
+#   dev-01 (65.21.153.235)  - Helsinki    - develop branch
+#   dev-02 (91.98.159.56)   - Falkenstein - staging branch
+#   dev-03 (65.21.52.58)    - Helsinki    - feature branches
+
+services:
+  frontend:
+    image: ${DOCKER_REGISTRY:-registry.gitlab.com/flow-master}/flowmaster-frontend:${FRONTEND_TAG:-latest}
+    container_name: flowmaster-frontend-${SERVER_NAME}
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - REACT_APP_API_URL=${API_URL:-http://localhost:8000}
+      - REACT_APP_WS_URL=${WS_URL:-ws://localhost:8000/ws}
+      - REACT_APP_SERVER_NAME=${SERVER_NAME}
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - flowmaster-dev
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  backend:
+    image: ${DOCKER_REGISTRY:-registry.gitlab.com/flow-master}/flowmaster-backend:${BACKEND_TAG:-latest}
+    container_name: flowmaster-backend-${SERVER_NAME}
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - SERVER_NAME=${SERVER_NAME}
+      - PORT=8000
+      - DATABASE_URL=${DATABASE_URL}
+      - ARANGO_URL=${ARANGO_URL:-http://arangodb:8529}
+      - ARANGO_DATABASE=${ARANGO_DATABASE:-flowmaster_core}
+      - ARANGO_USER=${ARANGO_USER:-root}
+      - ARANGO_PASSWORD=${ARANGO_PASSWORD}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - SECRET_KEY=${SECRET_KEY}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000}
+      - LOG_LEVEL=${LOG_LEVEL:-debug}
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      arangodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - flowmaster-dev
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  arangodb:
+    image: arangodb:3.11
+    container_name: flowmaster-arangodb-${SERVER_NAME}
+    ports:
+      - "8529:8529"
+    environment:
+      - ARANGO_ROOT_PASSWORD=${ARANGO_PASSWORD}
+    volumes:
+      - arangodb-data:/var/lib/arangodb3
+      - arangodb-apps:/var/lib/arangodb3-apps
+    restart: unless-stopped
+    networks:
+      - flowmaster-dev
+    deploy:
+      resources:
+        limits:
+          memory: 3G
+        reservations:
+          memory: 1G
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8529/_api/version"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: flowmaster-postgres-${SERVER_NAME}
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-flowmaster}
+      - POSTGRES_USER=${POSTGRES_USER:-flowmaster}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - flowmaster-dev
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 512M
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-flowmaster} -d ${POSTGRES_DB:-flowmaster}"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  redis:
+    image: redis:7-alpine
+    container_name: flowmaster-redis-${SERVER_NAME}
+    ports:
+      - "6379:6379"
+    command: redis-server --maxmemory 512mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    networks:
+      - flowmaster-dev
+    deploy:
+      resources:
+        limits:
+          memory: 768M
+        reservations:
+          memory: 128M
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+networks:
+  flowmaster-dev:
+    driver: bridge
+    name: flowmaster-${SERVER_NAME}
+
+volumes:
+  arangodb-data:
+    name: flowmaster-arangodb-${SERVER_NAME}
+  arangodb-apps:
+    name: flowmaster-arangodb-apps-${SERVER_NAME}
+  postgres-data:
+    name: flowmaster-postgres-${SERVER_NAME}
+  redis-data:
+    name: flowmaster-redis-${SERVER_NAME}

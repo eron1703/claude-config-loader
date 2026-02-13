@@ -59,14 +59,14 @@ deploy-dev:
   only: [develop]
   environment: development
   script:
-    - ssh deploy@$STAGING_DEV_SERVER "cd /opt/$PROJECT-develop && docker pull $IMAGE && docker compose up -d"
+    - ssh root@$DEV_SERVER "cd /opt/$PROJECT-develop && docker pull $IMAGE && docker compose up -d"
 
 deploy-staging:
   stage: deploy
   only: [staging]
   environment: staging
   script:
-    - ssh deploy@$STAGING_DEV_SERVER "cd /opt/$PROJECT-staging && docker pull $IMAGE && docker compose up -d"
+    - ssh root@$STAGING_SERVER "cd /opt/$PROJECT-staging && docker pull $IMAGE && docker compose up -d"
 
 deploy-prod:
   stage: deploy
@@ -74,10 +74,11 @@ deploy-prod:
   when: manual
   environment: production
   script:
-    - ssh deploy@$PRODUCTION_SERVER "cd /opt/$PROJECT && docker pull $IMAGE && docker compose up -d"
+    - ssh root@$PRODUCTION_SERVER "cd /opt/$PROJECT && docker pull $IMAGE && docker compose up -d"
 ```
 
-**Servers:** Dev/Staging: 91.98.159.56 | Production: 91.99.237.14
+**Servers:** Dev: 65.21.153.235 | Staging: 91.98.159.56 | Production: 91.99.237.14
+**GitLab Runner:** On dev server (65.21.153.235), tags: docker, demo-server
 
 ## 4. Plane Project
 

@@ -112,11 +112,11 @@ repositories:
       - postgres:5432
     dependencies:
       databases:
-        - demo server arangodb (65.21.153.235:8529)
+        - dev-01 arangodb (65.21.153.235:8529)
         - local postgres
         - local redis
     tests: no
-    notes: "Connects to demo server ArangoDB, uses DXG API via host.docker.internal"
+    notes: "Connects to dev-01 ArangoDB, uses DXG API via host.docker.internal"
 
   sdx:
     type: github (HCB-Consulting-ME)
@@ -395,7 +395,7 @@ dependency_notes: |
   Database sharing:
   - resolver + flowmaster share ArangoDB pattern (different instances)
   - sdx uses both flowmaster and resolver ArangoDB instances
-  - engage connects to demo server ArangoDB
+  - engage connects to dev-01 ArangoDB
   - commander has own ArangoDB instance
 
   Service integration:
