@@ -87,6 +87,7 @@ link_skill "$LOADER_DIR/skills/repos"                      "$CLAUDE_DIR/skills/r
 link_skill "$LOADER_DIR/skills/save"                       "$CLAUDE_DIR/skills/save"
 link_skill "$LOADER_DIR/skills/servers"                    "$CLAUDE_DIR/skills/servers"
 link_skill "$LOADER_DIR/skills/testing"                    "$CLAUDE_DIR/skills/testing"
+link_skill "$LOADER_DIR/skills/spec-writing"               "$CLAUDE_DIR/skills/spec-writing"
 
 # Test-Rig-specific (on-demand, test-rig project only)
 link_skill "$LOADER_DIR/skills/test-rig"                   "$CLAUDE_DIR/skills/test-rig"
@@ -178,6 +179,6 @@ echo "  SessionStart  -> auto-sync-config.sh (git sync, debounced 30min)"
 echo "  UserPromptSubmit -> per-message-reminder.sh (lightweight, ~200 bytes)"
 echo "  UserPromptSubmit -> auto-sync-config.sh (git sync, debounced 30min)"
 echo "Always loaded: core-rules, supervisor-methodology"
-echo "On-demand: /ports /databases /repos /servers /cicd /project /credentials /save /guidelines /testing /environment"
+echo "On-demand: /ports /databases /repos /servers /cicd /project /credentials /save /guidelines /testing /environment /spec-writing"
 echo "Test-Rig: test-rig (project development context)"
 echo "FlowMaster: flowmaster-overview, flowmaster-backend, flowmaster-database, etc."
