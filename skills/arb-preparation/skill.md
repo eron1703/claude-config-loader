@@ -575,29 +575,56 @@ runXXX/
 
 ## 7. FlowMaster Context
 
-### Current Service Registry (as of 2026-02)
+### Current Service Registry (as of 2026-02-13)
 
-| Service | Port | Status |
-|---------|------|--------|
-| API Gateway | 9000 | Healthy |
-| Auth Service | 9001 | Healthy |
-| Process Design | 9003 | Unhealthy |
-| Execution Engine | 9005 | Unhealthy |
-| Human Task | 9006 | Healthy |
-| Communication | 9011 | Healthy |
-| Audit & Compliance | 9012 | Healthy |
-| Process Analytics | 9014 | Unhealthy |
-| Service Registry | 9020 | Healthy |
-| Process Linking | 8021 | Healthy |
-| Process Versioning | 8020 | Starting |
-| Process Views | 8019 | Starting |
-| Rules Engine | 8018 | Unhealthy |
-| Legal Entity | 8014 | Unhealthy |
-| Prompt Engineering | 8022 | Unhealthy |
-| External Integration | 9024 | Unhealthy |
-| WebSocket Gateway | 9010 | Unhealthy |
-| Document Intelligence | 9002 | Healthy |
-| Frontend (Next.js) | 3000 | Healthy |
+#### Application Services
+| Service | Container | Port | Status |
+|---------|-----------|------|--------|
+| API Gateway | flowmaster-api-gateway-service | 9000 | Healthy |
+| Auth Service | flowmaster-auth-service | 9001 | Healthy |
+| Process Design | process-design-service-dev | 9003 | Unhealthy |
+| Execution Engine | flowmaster-execution-engine | 9005 | Unhealthy |
+| Human Task | flowmaster-human-task-service | 9006 | Healthy |
+| Communication | flowmaster-communication-service | 9011 | Healthy |
+| Audit & Compliance | flowmaster-audit-compliance-service | 9012 | Healthy |
+| Process Analytics | flowmaster-process-analytics-service | 9014 | Unhealthy |
+| Service Registry | flowmaster-service-registry-service | 9020 | Healthy |
+| Process Linking | flowmaster-process-linking-service | 8021 | Healthy |
+| Process Versioning | flowmaster-process-versioning-service | 8020 | Crash Loop |
+| Process Views | flowmaster-process-views-service | 8019 | Crash Loop |
+| Rules Engine | flowmaster-rules-engine-service | 8018 | Unhealthy |
+| Legal Entity | flowmaster-legal-entity-service | 8014 | Unhealthy |
+| Prompt Engineering | flowmaster-prompt-engineering-service | 8022 | Unhealthy |
+| External Integration | flowmaster-external-integration-service | 9024 | Unhealthy |
+| WebSocket Gateway | flowmaster-websocket-gateway-service | 9010 | Unhealthy |
+| Document Intelligence | document-intelligence-service-dev | 9002 | Healthy |
+| Frontend (Next.js) | flowmaster-frontend-nextjs | 3000 | Healthy |
+
+#### Database & Infrastructure Services
+| Service | Container | Port | Status |
+|---------|-----------|------|--------|
+| ArangoDB (main) | arangodb-main | 8529 | Running (no healthcheck) |
+| ArangoDB (process-design) | arangodb-process-design-local | 8532 | Healthy |
+| ArangoDB (doc-intel) | arangodb-document-intelligence-local | 8531 | Unhealthy |
+| ArangoDB (execution) | flowmaster-execution-arangodb | 8530 | Unhealthy |
+| PostgreSQL (auth) | flowmaster-auth-db | 5433 | Healthy |
+| PostgreSQL (service-registry) | flowmaster-service-registry-db | 5438 | Healthy |
+| Redis (auth) | 580769efcb32_flowmaster-auth-redis | 6380 | Healthy |
+| Redis (api-gateway) | api-gateway-redis | 6382 | Healthy |
+| Redis (execution) | flowmaster-execution-redis | 6383 | Healthy |
+| Redis (service-registry) | flowmaster-service-registry-redis | 6384 | Healthy |
+| Redis (websocket) | websocket-redis | 6381 | Healthy |
+| PgAdmin | flowmaster-pgadmin | 5050 | Running |
+| Grafana | grafana-mcp | (host network) | Running |
+
+#### Known Infrastructure Issues (as of 2026-02-13)
+- **Disk at 90%**: /dev/sda1 129G/150G used, only 16G free
+- **23 Docker networks**: Massive fragmentation — each service has its own isolated bridge network
+- **11 unhealthy containers**: Most can't reach each other due to network isolation
+- **2 crash-looping**: process-versioning and process-views restart constantly
+- **Nginx warnings**: 8 conflicting server name warnings, TLSv1/1.1 still enabled
+- **~50 orphaned volumes**: Mostly GitLab Runner cache accumulation
+- **Auth-redis hash prefix**: Container recreated outside normal compose flow
 
 ### Known Structural Changes in run001
 
