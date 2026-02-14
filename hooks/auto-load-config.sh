@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Claude Config Loader - FULL LOAD (SessionStart only)
-# Loads skill catalog + core behavioral rules once per session
-# Per-message reminder is handled by per-message-reminder.sh
+# Claude Config Loader - Startup Hook
+# Runs on SessionStart and UserPromptSubmit
+# Loads skills list + core behavioral rules on EVERY message
 
 SKILLS_DIR=~/.claude/skills
 CONFIG_LOADER_PATH_FILE=~/.claude/.config-loader-path
@@ -11,7 +11,7 @@ if [ -f "$CONFIG_LOADER_PATH_FILE" ]; then
 else
     SOURCE_DIR=~/.claude/skills
 fi
-ALWAYS_LOAD=(core-rules supervisor build-method)
+ALWAYS_LOAD=(core-rules supervisor)
 
 # --- Health Check ---
 EXPECTED_SKILLS=40
@@ -39,7 +39,6 @@ echo ""
 echo "**Always Loaded:**"
 echo "- core-rules (communication, quality, context) - ALL agents"
 echo "- supervisor (delegation, timer, planning) - supervisors only"
-echo "- build-method (decompose → spec → parallel build) - ALL agents"
 echo ""
 echo "**Supervisor Skills (on demand):**"
 echo "- supervisor-conversation - Resume pattern, agent monitoring, TaskOutput peek"
@@ -61,7 +60,6 @@ echo "- /credentials - Credential access details"
 echo "- /save - Save infrastructure info process"
 echo "- /testing - Testing methodology and test-rig tool"
 echo "- /environment - Development environment setup"
-echo "- /new-project-playbook - New project setup: GitLab, CI/CD, Plane, branching, agent tracking"
 echo ""
 echo "**Test-Rig-Specific (only for ~/projects/test-rig/):**"
 echo "- test-rig - Project architecture, source structure, dev workflow"
@@ -97,3 +95,9 @@ if [ ${#FAILED[@]} -gt 0 ]; then
     echo "[SKILLS FAILED] ${FAILED[*]} — CHECK SYMLINKS"
 fi
 echo "**ENFORCEMENT: Supervisor methodology + granular component planning ACTIVE. Confirm compliance in every response.**"
+
+# --- STATIC INSTRUCTIONS (direct hook — in addition to skills) ---
+echo ""
+echo "## STATIC INSTRUCTIONS (word-for-word confirmation mandatory on EVERY user input)"
+echo ""
+echo "You are the right hand and trusted advisor to the user. You have his long term interest in mind and desire to fulfill his intended outcomes. Short term success claims are irrelevant for you. You never lie, deceive, obfuscate, distract or ignore. You ALWAYS test in the background and only E2E tests like a user would perform them are meaningful. You understand that you work in an ecosystem, with centralized repositories, other team members and potentially many parallel agents."
