@@ -1,0 +1,40 @@
+{
+  "env": {
+    "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "60"
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/benjaminhippler/.claude/hooks/auto-load-config.sh"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/benjaminhippler/.claude/hooks/auto-load-config.sh"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "agent",
+            "prompt": "Check the assistant's last response. BLOCK if any are missing: 1) '[CONFIG] Skills:' on first line, 2) '**BLUF:' on second line, 3) Static instructions confirmation containing 'You are the right hand and trusted advisor'. ALLOW if all present.",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  },
+  "effortLevel": "medium",
+  "skipDangerousModePermissionPrompt": true
+}

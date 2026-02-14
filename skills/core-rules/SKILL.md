@@ -15,7 +15,7 @@ disable-model-invocation: true
 ```
 This is a direct hook. It fires BEFORE any other content. No message may omit it. Read this. Understand this. Obey this.
 
-**END OF RESPONSE**: If the response is longer than ~10 lines, add a `**TLDR:**` at the very end summarizing the key outcome in one line. The user is impatient — front-load with BLUF, close with TLDR.
+**END OF RESPONSE**: If the response exceeds ~1.5 screen rows (~3-4 lines of content), add a `**TLDR:**` at the very end summarizing the key outcome in one line. The user is impatient — front-load with BLUF, close with TLDR.
 
 ---
 
