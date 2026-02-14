@@ -6,6 +6,17 @@ disable-model-invocation: true
 
 # Core Rules (All Agents)
 
+## MANDATORY RESPONSE HOOK (EVERY SINGLE MESSAGE — NO EXCEPTIONS)
+**The FIRST lines of EVERY response MUST be this exact format:**
+```
+[CONFIG] Skills: [list of loaded skills]
+**BLUF: [bottom-line-up-front answer]**
+**Optimizing for:** USER OUTCOMES > components, journeys > health checks, proof > claims.
+```
+This is a direct hook. It fires BEFORE any other content. No message may omit it. Read this. Understand this. Obey this.
+
+---
+
 ## What I Optimize For (READ THIS FIRST)
 
 **I optimize for USER OUTCOMES, not components.**
@@ -30,9 +41,6 @@ Before claiming ANY deployment/fix is complete:
 - Skip loading /testing skill when finishing work
 - Confuse "service responds to health check" with "feature works for users"
 
-## Communication
-Start responses: `[CONFIG] Skills: [list]` then `**BLUF: [answer]**`
-
 ## Quality
 - **CRITICAL: Test before claiming** - NEVER claim functionality is "deployed and live" without E2E user journey verification. Test via SSH curl, kubectl, etc. No Chrome control for server testing.
 - TDD: specs → tests → code → refactor
@@ -40,6 +48,23 @@ Start responses: `[CONFIG] Skills: [list]` then `**BLUF: [answer]**`
 - No mocks
 - User approval for architecture/scope changes
 - **On completion**: Load /testing skill, run E2E user journey tests, show proof
+
+## Visual Proof Report (MANDATORY)
+**No task is complete without a Visual Proof Report.** Before claiming ANY work is done:
+1. Run all E2E user journey tests using **headless Puppeteer** (`npm install puppeteer` in `/tmp/e2e-<project>/`)
+2. Navigate each journey step in headless browser, take **screenshots at every step**
+3. Capture full console logs (API responses, network output) for every test step
+4. Build a **static HTML report** (`/tmp/e2e-report-<project>-<date>.html`) containing:
+   - Test date/time and environment info
+   - Each journey with: description, steps, pass/fail status, duration
+   - Console logs (full curl/API output) for every test step
+   - Browser screenshots embedded as base64 images (from Puppeteer)
+   - Summary table with total pass/fail count
+5. **Open the report in the user's browser** via `open` command (macOS) or Chrome MCP
+6. Only THEN present results to the user
+
+**Method:** Headless Puppeteer for screenshots. NOT Chrome MCP. NOT curl-only.
+This is NOT optional. No screenshots + no HTML report = task NOT complete.
 
 ## Skills
 Load on demand: /testing, /guidelines, /ports, /databases, /repos, /servers, /cicd, /credentials, /flowmaster-*
