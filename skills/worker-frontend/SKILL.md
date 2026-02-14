@@ -83,7 +83,7 @@ docker push localhost:30500/flowmaster/frontend-nextjs:<tag>
 
 ### Deploy to K3S
 ```bash
-ssh demo-server-root "kubectl set image -n flowmaster \
+ssh dev-01-root "kubectl set image -n flowmaster \
   deploy/frontend \
   frontend=localhost:30500/flowmaster/frontend-nextjs:<tag>"
 ```
@@ -112,18 +112,18 @@ These are passed during Docker build and embedded in the image:
 
 ### Check Deployment Status
 ```bash
-ssh demo-server-root "kubectl -n flowmaster get deploy frontend"
-ssh demo-server-root "kubectl -n flowmaster describe deploy frontend"
+ssh dev-01-root "kubectl -n flowmaster get deploy frontend"
+ssh dev-01-root "kubectl -n flowmaster describe deploy frontend"
 ```
 
 ### View Logs
 ```bash
-ssh demo-server-root "kubectl logs -n flowmaster deploy/frontend --tail=50"
+ssh dev-01-root "kubectl logs -n flowmaster deploy/frontend --tail=50"
 ```
 
 ### Check Health
 ```bash
-ssh demo-server-root "kubectl exec -n flowmaster deploy/frontend -- wget -qO- http://localhost:3000/"
+ssh dev-01-root "kubectl exec -n flowmaster deploy/frontend -- wget -qO- http://localhost:3000/"
 ```
 
 ## Authentication

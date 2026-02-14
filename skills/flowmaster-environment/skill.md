@@ -472,7 +472,7 @@ DB 6: Schedule caching (Scheduling Service)
 3005: Manager App (Escalation Dashboard)
 5173: Frontend (Vite dev server)
 8005: DXG Backend
-8010: SDX API (demo server)
+8010: SDX API (dev-01 server)
 8529: ArangoDB
 5432: PostgreSQL
 6379: Redis

@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # Worker Database Knowledge
 
-## Databases on Demo Server (65.21.153.235)
+## Databases on Dev-01 Server (65.21.153.235)
 
 All databases run in the `databases-test` namespace on K3S.
 
@@ -17,7 +17,7 @@ All databases run in the `databases-test` namespace on K3S.
 - **User**: root
 - **Password**: flowmaster25!
 - **K8S URL**: http://arangodb.databases-test.svc.cluster.local:8529
-- **Web UI**: http://65.21.153.235:8529 (from demo server)
+- **Web UI**: http://65.21.153.235:8529 (from dev-01)
 
 **Databases**:
 - `flowmaster` - Production data
@@ -82,13 +82,13 @@ RETURN doc
 ### Via SSH Tunnel
 ```bash
 # Create tunnel for ArangoDB
-ssh demo-server-root -L 8529:arangodb.databases-test.svc.cluster.local:8529 -N &
+ssh dev-01-root -L 8529:arangodb.databases-test.svc.cluster.local:8529 -N &
 
 # Create tunnel for PostgreSQL
-ssh demo-server-root -L 5432:postgres-clusterip.databases-test.svc.cluster.local:5432 -N &
+ssh dev-01-root -L 5432:postgres-clusterip.databases-test.svc.cluster.local:5432 -N &
 
 # Create tunnel for Redis
-ssh demo-server-root -L 6379:redis.databases-test.svc.cluster.local:6379 -N &
+ssh dev-01-root -L 6379:redis.databases-test.svc.cluster.local:6379 -N &
 
 # Now connect locally
 arangosh --server.endpoint http://127.0.0.1:8529 --server.username root --server.password flowmaster25!

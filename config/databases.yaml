@@ -109,7 +109,7 @@ project_databases:
     local_path: ~/projects/engage
     databases:
       - type: arangodb
-        name: demo-server-arangodb
+        name: dev-01-arangodb
         host: 65.21.153.235
         port: 8529
         purpose: "Collaboration data (remote)"
@@ -121,10 +121,10 @@ project_databases:
         name: redis
         port: 6379
         purpose: "Session management"
-    notes: "Connects to demo server ArangoDB, uses DXG API for generation"
+    notes: "Connects to dev-01 ArangoDB, uses DXG API for generation"
 
   sdx_mcp_server:
-    location: "demo-server (65.21.153.235)"
+    location: "dev-01 (65.21.153.235)"
     local_path: ~/projects/plane-mcp-server
     primary_database:
       type: arangodb
@@ -173,7 +173,7 @@ project_databases:
         purpose: "LLM-based annotation generation"
         credentials: "Environment variable: OPENROUTER_API_KEY"
     notes: |
-      - SDX MCP Server running on demo-server port 8011
+      - SDX MCP Server running on dev-01 port 8011
       - Shares ArangoDB instance with engage project (different databases)
       - PostgreSQL is primary data source for ingestion
       - AI services (OpenAI, OpenRouter) are optional

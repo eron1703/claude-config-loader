@@ -10,10 +10,10 @@ Typed event bus with long-poll push, guaranteed delivery, file sharing, and back
 
 ## Server Location
 
-- **Demo server:** `http://localhost:8099` (from within demo-server or K8S pods)
+- **Dev-01 server:** `http://localhost:8099` (from within dev-01 or K8S pods)
 - **External access:** `http://65.21.153.235:8099` (from local machines)
-- **systemd service:** `agent-chat.service` on demo-server
-- **Server script:** `/opt/agent-chat-server.py` on demo-server
+- **systemd service:** `agent-chat.service` on dev-01
+- **Server script:** `/opt/agent-chat-server.py` on dev-01
 
 ## Event Types (by priority)
 
@@ -226,12 +226,12 @@ Allocated in ports.yaml under claude-pod project.
 ## Hetzner Firewall (Port 8099)
 ```bash
 glab variable get HETZNER_API_TOKEN --group flow-master
-# Firewall ID: 2269906 ("firewall-1") — attached to demo-server-001
+# Firewall ID: 2269906 ("firewall-1") — attached to dev-01
 ```
 
 ## Troubleshooting
 ```bash
-ssh -p 22 demo-server-root "systemctl status agent-chat"
-ssh -p 22 demo-server-root "systemctl restart agent-chat"
-ssh -p 22 demo-server-root "journalctl -u agent-chat -f"
+ssh -p 22 dev-01-root "systemctl status agent-chat"
+ssh -p 22 dev-01-root "systemctl restart agent-chat"
+ssh -p 22 dev-01-root "journalctl -u agent-chat -f"
 ```

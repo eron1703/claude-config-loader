@@ -45,7 +45,7 @@ When you need a knowledge skill you weren't given at launch, use BLOCKED with a 
 ## STATUS: BLOCKED
 
 ## ACCOMPLISHED
-- Connected to demo server via SSH
+- Connected to dev-01 via SSH
 - Found auth-service pod running on port 9001
 
 ## NEED_CAPABILITY

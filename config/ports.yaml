@@ -68,7 +68,7 @@ engage:
   postgres: 5432
   description: "Engagement platform with MCP and collaboration services"
   repo: ~/projects/engage
-  notes: "Connects to demo server ArangoDB (65.21.153.235:8529), uses DXG API"
+  notes: "Connects to dev-01 ArangoDB (65.21.153.235:8529), uses DXG API"
 
 sdx:
   sdx-backend: 8010
@@ -85,21 +85,14 @@ plane:
   plane-redis: 6379 (internal only)
   plane-mq: 5672 (internal only)
   plane-minio: 9000 (internal only)
-  description: "Plane CE v1.2.1 project management on demo server"
-  repo: /opt/plane/ (on demo server)
-  notes: "Deployed on demo server (65.21.153.235). Internal services not exposed to host."
+  description: "Plane CE v1.2.1 project management on dev-01"
+  repo: /opt/plane/ (on dev-01)
+  notes: "Deployed on dev-01 (65.21.153.235). Internal services not exposed to host."
 
 claude-config-loader:
   description: "Claude Code configuration management"
   repo: "See ~/.claude/.config-loader-path for install location"
   notes: "No services, configuration files only"
-
-rta-sidekick:
-  mock-remedy: 8100
-  backend: 8200
-  description: "AI-powered IT operations agent for RTA"
-  repo: ~/projects/rta-sidekick
-  notes: "Mock Remedy on 8100, Backend orchestration hub on 8200. Repos: rta-sidekick-mock-remedy, rta-sidekick-backend"
 
 claude-pod:
   health: 8013
@@ -108,7 +101,7 @@ claude-pod:
   agent-chat: 8099
   description: "Containerized Claude Code with LiteLLM proxy for cost-effective AI routing"
   repo: "https://gitlab.com/flow-master/claude-pod"
-  notes: "K3S deployment on demo-server. Routes Claude API calls to Grok-3 and Gemini 2.5 Flash. Health endpoint on 8013. Agent chat room on 8099."
+  notes: "K3S deployment on dev-01. Routes Claude API calls to Grok-3 and Gemini 2.5 Flash. Health endpoint on 8013. Agent chat room on 8099."
 
 # === ARCHIVED / DOCUMENTATION PROJECTS ===
 
@@ -167,34 +160,6 @@ conflicts:
     - "commander uses 8529 but different container name"
 
   active_conflicts: []
-  canonical_resolutions:
-    - issue: "H1: Port 9006 Conflict"
-      date_resolved: "2026-02-12"
-      services:
-        - "Human Task Service → Port 9006 (canonical)"
-        - "AI Agent Service → Port 9007 (moved from 9006)"
-      documentation: "See /Users/benjaminhippler/.claude/skills/flowmaster-backend/PORT_REGISTRY.md"
-
-    - issue: "H2: Port 9014 Conflict"
-      date_resolved: "2026-02-12"
-      services:
-        - "Process Analytics → Port 9014 (canonical)"
-        - "External Integration → Port 9015 (moved from 9014)"
-      documentation: "See PORT_REGISTRY.md section H2"
-
-    - issue: "H3: Port 9000 Conflict"
-      date_resolved: "2026-02-12"
-      resolution: "API Gateway canonical on 9000; Resolver local-only (isolated network)"
-      documentation: "See PORT_REGISTRY.md section H3"
-
-    - issue: "H4: Port 3001 Conflict"
-      date_resolved: "2026-02-12"
-      services:
-        - "Engage App → Port 3001 (canonical)"
-        - "Manager App → Port 3005 (moved from 3001)"
-        - "Process Designer → Port 3002 (confirmed)"
-      documentation: "See PORT_REGISTRY.md section H4"
-
   resolved_conflicts:
     - port: 3010
       projects:
@@ -226,11 +191,11 @@ conflicts:
 # === EXTERNAL CONNECTIONS ===
 
 external:
-  demo_server:
+  dev_01:
     arangodb: "65.21.153.235:8529"
     used_by:
       - engage (collaboration service connects to this)
-    notes: "Demo server ArangoDB, configured in engage docker-compose"
+    notes: "Dev-01 ArangoDB, configured in engage docker-compose"
 
 # === NETWORK ISOLATION ===
 
@@ -262,11 +227,6 @@ networks:
       - engage
     isolated: true
 
-  rta-sidekick-network:
-    projects:
-      - rta-sidekick
-    isolated: true
-
 # === PORT ALLOCATION GUIDELINES ===
 
 guidelines:
@@ -281,13 +241,13 @@ guidelines:
 
   "4000": "claude-pod (litellm-proxy API, K8S internal only)"
   "8000": "claude-pod (litellm-proxy health, K8S internal only)"
-  "8012": "plane (MCP server, demo server only)"
+  "8012": "plane (MCP server, dev-01 only)"
   "8013": "claude-pod (health endpoint, K8S internal only)"
-  "8083": "plane (web UI proxy, demo server only)"
-  "8099": "claude-pod (agent-chat room, demo server)"
+  "8083": "plane (web UI proxy, dev-01 only)"
+  "8099": "claude-pod (agent-chat room, dev-01)"
 by_port:
   "3000": "commander (backend), flowmaster (frontend), documentation (frontend)"
-  "3001": "resolver (frontend), flowmaster (engage-app) [CANONICAL - conflict H4]"
+  "3001": "resolver (frontend), flowmaster (mcp-postgres)"
   "3002": "commander (approvals-worker)"
   "3003": "commander (playbooks-worker), flowmaster (employee-app-frontend)"
   "3004": "commander (notifications-worker), flowmaster (guard-mobile-frontend)"
@@ -310,54 +270,40 @@ by_port:
   "6381": "dxg (dxg-redis)"
   "6383": "flowmaster (flowmaster-message-redis)"
   "8000": "claude-pod (litellm-proxy health, K8S internal)"
-  "8001": "flowmaster (service-registry)"
-  "8002": "flowmaster (authentication-service)"
+  "8001": "documentation (service-registry), flowmaster (employee-app-backend)"
+  "8002": "documentation (auth-service), flowmaster (backend)"
   "8004": "flowmaster (guard-mobile-backend)"
   "8005": "dxg (backend)"
-  "8006": "(reserved)"
-  "8009": "flowmaster (knowledge-hub)"
-  "8010": "sdx (backend), flowmaster (integration-hub)"
+  "8006": "documentation (notification-service)"
+  "8009": "documentation (data-hub-service)"
+  "8010": "documentation (integration-hub-service), sdx (backend)"
   "8011": "sdx (mcp-server)"
-  "8012": "flowmaster (prompt-engineering)"
-  "8014": "flowmaster (legal-entity-service)"
-  "8018": "flowmaster (business-rules-engine)"
-  "8019": "flowmaster (process-views)"
-  "8020": "flowmaster (process-versioning)"
-  "8021": "flowmaster (process-linking)"
-  "8012": "plane (MCP server, demo server only)"
+  "8012": "plane (MCP server, dev-01 only)"
   "8013": "claude-pod (health endpoint, K8S internal)"
   "8020": "engage (mcp-server)"
   "8021": "engage (collaboration)"
   "8022": "engage (preferences)"
-  "8100": "rta-sidekick (mock-remedy)"
   "8080": "resolver (netbox)"
-  "8200": "rta-sidekick (backend)"
   "8529": "resolver (arangodb), commander (arangodb), documentation (arangodb)"
   "8530": "resolver (arangodb web UI)"
   "8531": "flowmaster (arangodb)"
   "8532": "flowmaster (arangodb web UI - inferred)"
-  "9000": "resolver (backend), flowmaster (api-gateway)"
-  "9001": "(reserved for future use)"
-  "9002": "flowmaster (document-intelligence)"
-  "9003": "flowmaster (process-design)"
-  "9005": "flowmaster (execution-engine)"
-  "9006": "flowmaster (human-task-service)"
-  "9007": "flowmaster (ai-agent-service) [MOVED from 9006 - conflict H1]"
-  "9008": "flowmaster (scheduling-service)"
-  "9009": "flowmaster (notification-service)"
-  "9010": "flowmaster (websocket-gateway)"
-  "9011": "flowmaster (dxg-service)"
-  "9013": "flowmaster (event-bus)"
-  "9014": "flowmaster (process-analytics) [CANONICAL - conflict H2]"
-  "9015": "flowmaster (external-integration) [MOVED from 9014 - conflict H2]"
-  "9016": "flowmaster (agent-service, marketplace)"
+  "9000": "resolver (backend), documentation (api-gateway)"
+  "9001": "documentation (ai-agent-service)"
+  "9002": "documentation (document-intelligence)"
+  "9003": "documentation (process-design)"
+  "9005": "documentation (execution-engine)"
+  "9006": "documentation (human-task-service)"
+  "9008": "documentation (scheduling-service)"
+  "9010": "documentation (websocket-gateway)"
+  "9013": "documentation (event-bus)"
   "9092": "documentation (kafka)"
   "29092": "documentation (kafka-internal)"
   "2181": "documentation (zookeeper)"
 
-# === DEMO SERVER PORTS ===
+# === DEV-01 SERVER PORTS ===
 
-demo_server_65_21_153_235:
+dev_01_65_21_153_235:
   arangodb: 8529
   plane-proxy: 8083
   plane-mcp-server: 8012

@@ -19,7 +19,7 @@ You are an infrastructure agent responsible for managing Kubernetes, Docker, dep
 
 ### SSH & Remote Commands
 - **Always** use `--timeout` flag on SSH commands (15 second default maximum)
-- Example: `ssh demo-server "command" --timeout 15s`
+- Example: `ssh dev-01 "command" --timeout 15s`
 - Long-running tasks must be launched in background with status verification
 - If timeout occurs, investigate with diagnostic commands instead of increasing timeout
 

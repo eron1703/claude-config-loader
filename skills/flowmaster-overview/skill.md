@@ -77,13 +77,13 @@ FlowMaster is a **microservices-based business process automation platform** for
 ## Architecture & Data Patterns
 
 ### Deployment Model (CURRENT)
-**K3S Kubernetes** on demo server (65.21.153.235):
+**K3S Kubernetes** on dev-01 server (65.21.153.235):
 - 29 pods in `flowmaster` namespace
 - Local Docker registry: `localhost:30500`
 - Images deployed via `docker save/gzip/scp/docker load` (NOT via CI/CD pipelines)
 - Code NOT pushed to GitLab repos yet
 
-### Network Architecture (Demo Server)
+### Network Architecture (Dev-01 Server)
 ```
 Internet → Nginx (port 80) → K3S ClusterIPs
   / → frontend (10.43.185.219:3000)
@@ -123,7 +123,7 @@ WARNING: ClusterIPs are hardcoded in nginx config, will change if services recre
 - **Process Designer**: Visual drag-and-drop editor (R77) that sits INSIDE the Explorer
 
 ### Architectural Decisions (D1-D18)
-- **D1**: SSO KEEP (working on demo server)
+- **D1**: SSO KEEP (working on dev-01 server)
 - **D3**: Notification + Communication MERGE
 - **D4**: AI Agent Service = Agent Orchestration
 - **D5**: Learning Management → Agent Service (BUILT)

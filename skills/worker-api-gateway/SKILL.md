@@ -14,7 +14,7 @@ Browser → Nginx (port 80) → API Gateway (port 9000) → Backend Service
 
 ## Nginx Configuration
 
-**Location**: `/etc/nginx/sites-enabled/flowmaster` on demo server (65.21.153.235)
+**Location**: `/etc/nginx/sites-enabled/flowmaster` on dev-01 server (65.21.153.235)
 
 ### Nginx Routes
 - **`/`** → frontend-nextjs ClusterIP (10.43.185.219:3000)
@@ -67,22 +67,22 @@ Gateway routes are stored in **ConfigMap**: `gateway-config` (routes.yaml)
 
 ### View Current Routes
 ```bash
-ssh demo-server-root "kubectl get cm gateway-config -n flowmaster -o yaml"
+ssh dev-01-root "kubectl get cm gateway-config -n flowmaster -o yaml"
 ```
 
 ### View Just routes.yaml
 ```bash
-ssh demo-server-root "kubectl get cm gateway-config -n flowmaster -o jsonpath='{.data.routes\.yaml}'"
+ssh dev-01-root "kubectl get cm gateway-config -n flowmaster -o jsonpath='{.data.routes\.yaml}'"
 ```
 
 ### Edit Routes
 ```bash
-ssh demo-server-root "kubectl edit cm gateway-config -n flowmaster"
+ssh dev-01-root "kubectl edit cm gateway-config -n flowmaster"
 ```
 
 ### Restart Gateway After Changes
 ```bash
-ssh demo-server-root "kubectl rollout restart -n flowmaster deploy/api-gateway"
+ssh dev-01-root "kubectl rollout restart -n flowmaster deploy/api-gateway"
 ```
 
 ## ClusterIP Endpoints (Hardcoded in Nginx)
@@ -110,18 +110,18 @@ ssh demo-server-root "kubectl rollout restart -n flowmaster deploy/api-gateway"
 
 ### Gateway Health
 ```bash
-ssh demo-server-root "kubectl exec -n flowmaster deploy/api-gateway -- wget -qO- http://localhost:9000/health"
+ssh dev-01-root "kubectl exec -n flowmaster deploy/api-gateway -- wget -qO- http://localhost:9000/health"
 ```
 
 ### Check Gateway Logs
 ```bash
-ssh demo-server-root "kubectl logs -n flowmaster deploy/api-gateway --tail=50"
+ssh dev-01-root "kubectl logs -n flowmaster deploy/api-gateway --tail=50"
 ```
 
 ## Debugging Routes
 
 ### If Route Not Working
-1. Check Nginx config: `ssh demo-server-root "cat /etc/nginx/sites-enabled/flowmaster"`
+1. Check Nginx config: `ssh dev-01-root "cat /etc/nginx/sites-enabled/flowmaster"`
 2. Check gateway logs: `kubectl logs -n flowmaster deploy/api-gateway`
 3. Check ConfigMap: `kubectl get cm gateway-config -n flowmaster -o yaml`
 4. Verify backend service is running: `kubectl -n flowmaster get pods | grep <service-name>`

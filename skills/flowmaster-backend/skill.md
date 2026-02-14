@@ -120,7 +120,7 @@ Each service owns its database and communicates via Event Bus (async) and REST A
 
 ### 13. SSO Service
 **Purpose:** OAuth/SAML enterprise authentication
-**Status:** Working on demo server (no dedicated repo)
+**Status:** Working on dev-01 server (no dedicated repo)
 
 ---
 

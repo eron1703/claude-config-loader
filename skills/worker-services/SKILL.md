@@ -106,12 +106,12 @@ disable-model-invocation: true
 
 All services (except frontend) support `/health` endpoint:
 ```bash
-ssh demo-server-root "kubectl exec -n flowmaster deploy/<service> -- wget -qO- http://localhost:<port>/health"
+ssh dev-01-root "kubectl exec -n flowmaster deploy/<service> -- wget -qO- http://localhost:<port>/health"
 ```
 
 Example:
 ```bash
-ssh demo-server-root "kubectl exec -n flowmaster deploy/execution-engine -- wget -qO- http://localhost:9005/health"
+ssh dev-01-root "kubectl exec -n flowmaster deploy/execution-engine -- wget -qO- http://localhost:9005/health"
 ```
 
 ## Environment Variables (Common)
@@ -125,22 +125,22 @@ ssh demo-server-root "kubectl exec -n flowmaster deploy/execution-engine -- wget
 
 ### Check All Pods Running
 ```bash
-ssh demo-server-root "kubectl -n flowmaster get pods"
+ssh dev-01-root "kubectl -n flowmaster get pods"
 ```
 
 ### Check Service Status
 ```bash
-ssh demo-server-root "kubectl -n flowmaster describe svc <service-name>"
+ssh dev-01-root "kubectl -n flowmaster describe svc <service-name>"
 ```
 
 ### View Service Logs
 ```bash
-ssh demo-server-root "kubectl logs -n flowmaster deploy/<service-name> --tail=100"
+ssh dev-01-root "kubectl logs -n flowmaster deploy/<service-name> --tail=100"
 ```
 
 ### Test Service Connectivity
 ```bash
-ssh demo-server-root "kubectl port-forward -n flowmaster svc/<service-name> <port>:<port>"
+ssh dev-01-root "kubectl port-forward -n flowmaster svc/<service-name> <port>:<port>"
 # Then: curl http://localhost:<port>/health
 ```
 

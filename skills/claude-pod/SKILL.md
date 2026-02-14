@@ -8,7 +8,7 @@
 
 **Manual SSH Connection:**
 ```bash
-ssh demo-server-root "kubectl exec -it -n claude-pod deployment/claude-pod -- bash"
+ssh dev-01-root "kubectl exec -it -n claude-pod deployment/claude-pod -- bash"
 ```
 
 ## Setup (One-Time)
@@ -45,7 +45,7 @@ curl http://litellm-proxy:4000/spend/tags
 
 ## Deployment Info
 
-- **Server**: demo-server (65.21.153.235)
+- **Server**: dev-01 (65.21.153.235)
 - **Namespace**: `claude-pod`
 - **Platform**: K3S (Kubernetes)
 - **Replicas**: 1-8 (auto-scales with HPA)
@@ -55,7 +55,7 @@ curl http://litellm-proxy:4000/spend/tags
 ## Health Check
 
 ```bash
-# From demo-server
+# From dev-01
 kubectl get pods -n claude-pod
 kubectl logs -f -n claude-pod deployment/claude-pod
 
