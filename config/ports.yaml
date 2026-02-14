@@ -20,15 +20,17 @@ resolver:
   notes: "Uses NetBox for network inventory, ArangoDB for correlation graphs"
 
 commander:
-  arangodb: 8529
-  backend: 3000
+  arangodb: 8533
+  arangodb_web: 8534
+  backend: 9050  # Express server (internal 3000, host-mapped 9050 to avoid Grafana conflict)
   frontend: 5173
+  agent-daemon: 9101  # Python agent on each server (9100 taken by prometheus-node-exporter)
   approvals-worker: 3002
   playbooks-worker: 3003
   notifications-worker: 3004
   description: "Enterprise SDLC orchestration platform"
   repo: ~/projects/commander
-  notes: "Modular worker architecture, own ArangoDB instance"
+  notes: "Monolith on dev-01. ArangoDB 8533 (8529 taken by resolver). Agent daemon on host via systemd."
 
 flowmaster:
   arangodb: 8531
@@ -171,10 +173,10 @@ conflicts:
     - port: 8529
       projects:
         - resolver (arangodb)
-        - commander (arangodb)
         - documentation (arangodb)
-      status: "OK if not running simultaneously"
-      note: "Different container names, can coexist if using different Docker networks"
+      status: "RESOLVED: commander moved to 8533"
+      note: "Commander now uses 8533/8534 to avoid conflict with resolver on dev-01"
+      date_resolved: "2026-02-14"
 
     - port: 5432
       projects:
@@ -239,14 +241,8 @@ guidelines:
 
 # === QUICK REFERENCE BY PORT ===
 
-  "4000": "claude-pod (litellm-proxy API, K8S internal only)"
-  "8000": "claude-pod (litellm-proxy health, K8S internal only)"
-  "8012": "plane (MCP server, dev-01 only)"
-  "8013": "claude-pod (health endpoint, K8S internal only)"
-  "8083": "plane (web UI proxy, dev-01 only)"
-  "8099": "claude-pod (agent-chat room, dev-01)"
 by_port:
-  "3000": "commander (backend), flowmaster (frontend), documentation (frontend)"
+  "3000": "flowmaster (frontend), documentation (frontend)"
   "3001": "resolver (frontend), flowmaster (mcp-postgres)"
   "3002": "commander (approvals-worker)"
   "3003": "commander (playbooks-worker), flowmaster (employee-app-frontend)"
@@ -284,7 +280,9 @@ by_port:
   "8021": "engage (collaboration)"
   "8022": "engage (preferences)"
   "8080": "resolver (netbox)"
-  "8529": "resolver (arangodb), commander (arangodb), documentation (arangodb)"
+  "8529": "resolver (arangodb), documentation (arangodb)"
+  "8533": "commander (arangodb)"
+  "8534": "commander (arangodb web UI)"
   "8530": "resolver (arangodb web UI)"
   "8531": "flowmaster (arangodb)"
   "8532": "flowmaster (arangodb web UI - inferred)"
@@ -297,18 +295,28 @@ by_port:
   "9008": "documentation (scheduling-service)"
   "9010": "documentation (websocket-gateway)"
   "9013": "documentation (event-bus)"
+  "9050": "commander (backend, host-mapped)"
   "9092": "documentation (kafka)"
+  "9101": "commander (agent-daemon on each server)"
   "29092": "documentation (kafka-internal)"
   "2181": "documentation (zookeeper)"
 
 # === DEV-01 SERVER PORTS ===
 
 dev_01_65_21_153_235:
-  arangodb: 8529
+  arangodb_resolver: 8529
+  arangodb_commander: 8533
+  arangodb_commander_web: 8534
+  commander_backend: 9050
+  commander_agent: 9101
   plane-proxy: 8083
   plane-mcp-server: 8012
   agent-chat: 8099
+  grafana: 3000
+  prometheus: 9090
+  prometheus-node-exporter: 9100
   used_by:
     - "engage project (collaboration service)"
+    - "commander (backend + agent)"
   access: "Remote connection from local containers"
-  notes: "Public IP, ensure proper security"
+  notes: "Public IP, ensure proper security. Commander monolith deployed here."
