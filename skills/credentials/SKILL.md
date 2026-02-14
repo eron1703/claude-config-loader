@@ -70,10 +70,10 @@ glab variable get HETZNER_API_TOKEN --group flow-master
 - **Location**: GitLab CI/CD group variable `GRAFANA_ADMIN_PASSWORD` (masked, protected)
 - **Group**: `flow-master` (ID: 122023679)
 - **URL variable**: `GRAFANA_URL` (not masked, not protected)
-- **Dashboard**: http://dev-01:3001 (65.21.153.235:3001)
+- **Dashboard**: http://dev-01:3002 (65.21.153.235:3002)
 - **Admin user**: `admin`
 - **Use for**: Viewing dashboards, managing alert rules, checking monitoring data
-- **Quick check**: `curl -s http://admin:$(glab variable get GRAFANA_ADMIN_PASSWORD --group flow-master)@dev-01:3001/api/health`
+- **Quick check**: `curl -s http://admin:$(glab variable get GRAFANA_ADMIN_PASSWORD --group flow-master)@dev-01:3002/api/health`
 
 ### FlowMaster Dev Environment (flowmaster-dev namespace)
 **Default credentials (NOT in GitLab - stored in database only):**
