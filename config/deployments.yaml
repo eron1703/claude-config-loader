@@ -1,0 +1,769 @@
+# Deployment Tracking - What runs where
+# Updated: 2026-02-14
+# Run discover.sh to refresh from live servers
+#
+# This file tracks actual deployments across all infrastructure servers.
+# It complements servers.yaml (server specs) and ports.yaml (port allocation).
+
+servers:
+
+  # =============================================
+  # DEV-01: Development Environment + Tools
+  # 65.21.153.235 | CCX23, 160GB | Helsinki
+  # Platform: K3S Kubernetes + Docker
+  # =============================================
+
+  dev-01:
+    server_info:
+      ip: 65.21.153.235
+      platform: "K3S Kubernetes + Docker"
+      purpose: "Development environment + dev tools (Plane, Grafana, monitoring)"
+      last_updated: "2026-02-14"
+
+    # --- K3S KUBERNETES DEPLOYMENTS ---
+    k3s:
+
+      # Namespace: flowmaster-dev (FlowMaster microservices - 36 deployments)
+      flowmaster-dev:
+        agent-service:
+          image: "localhost:30500/flowmaster/agent-service:latest"
+          replicas: 1
+          status: running
+          purpose: "Agent coordination service"
+
+        ai-agent:
+          image: "localhost:30500/flowmaster-ai-agent-service:latest"
+          replicas: 1
+          status: running
+          purpose: "AI agent service with LLM integration"
+
+        api-gateway:
+          image: "localhost:30500/flowmaster/api-gateway:latest"
+          replicas: 1
+          status: running
+          purpose: "Main API gateway for FlowMaster"
+
+        audit-compliance:
+          image: "localhost:30500/flowmaster/audit-compliance-service:latest"
+          replicas: 1
+          status: running
+          purpose: "Audit and compliance tracking"
+
+        auth-service:
+          image: "localhost:30500/flowmaster/auth-service:latest"
+          replicas: 1
+          status: running
+          purpose: "Authentication service"
+
+        bac-marketplace:
+          image: "localhost:30500/bac-marketplace:latest"
+          replicas: 1
+          status: running
+          purpose: "BAC marketplace service"
+
+        business-rules-engine:
+          image: "localhost:30500/flowmaster/business-rules-engine-service:latest"
+          replicas: 1
+          status: running
+          purpose: "Business rules engine"
+
+        communication:
+          image: "localhost:30500/flowmaster/communication-service:latest"
+          replicas: 1
+          status: running
+          purpose: "Communication and notifications"
+
+        data-intelligence:
+          image: "localhost:30500/flowmaster/data-intelligence-service:latest"
+          replicas: 1
+          status: running
+          purpose: "Data analytics and intelligence"
+
+        document-intelligence:
+          image: "localhost:30500/flowmaster/document-intelligence-service:latest"
+          replicas: 1
+          status: running
+          purpose: "Document processing and AI analysis"
+
+        dxg-service:
+          image: "localhost:30500/flowmaster/dxg-service:latest"
+          replicas: 1
+          status: running
+          purpose: "Dynamic experience generator"
+
+        engage-collaboration:
+          image: "localhost:30500/flowmaster/engage-collaboration:latest"
+          replicas: 1
+          status: running
+          purpose: "Collaboration platform service"
+
+        engage-frontend:
+          image: "localhost:30500/flowmaster/engage-frontend:latest"
+          replicas: 1
+          status: running
+          purpose: "Engage frontend application"
+
+        engage-mcp-server:
+          image: "localhost:30500/flowmaster/engage-mcp-server:latest"
+          replicas: 1
+          status: running
+          purpose: "Engage MCP server (Model Context Protocol)"
+
+        engage-preferences:
+          image: "localhost:30500/flowmaster/engage-preferences:latest"
+          replicas: 1
+          status: running
+          purpose: "User preferences service"
+
+        event-bus:
+          image: "localhost:30500/flowmaster/event-bus-service:latest"
+          replicas: 1
+          status: running
+          purpose: "Event bus for microservices communication"
+
+        execution-engine:
+          image: "localhost:30500/flowmaster-execution-engine:latest"
+          replicas: 1
+          status: running
+          purpose: "Workflow execution engine"
+
+        external-integration:
+          image: "localhost:30500/flowmaster/external-integration-service:latest"
+          replicas: 1
+          status: running
+          purpose: "External system integrations"
+
+        frontend:
+          image: "localhost:30500/flowmaster-frontend:apiv1-fix2"
+          replicas: 1
+          status: running
+          purpose: "Main FlowMaster frontend"
+
+        human-task:
+          image: "localhost:30500/flowmaster/human-task-service:latest"
+          replicas: 1
+          status: running
+          purpose: "Human task management"
+
+        knowledge-hub:
+          image: "localhost:30500/flowmaster/knowledge-hub-service:latest"
+          replicas: 1
+          status: running
+          purpose: "Knowledge base and documentation"
+
+        legal-entity-service:
+          image: "localhost:30500/flowmaster/legal-entity-service:latest"
+          replicas: 1
+          status: running
+          purpose: "Legal entity management"
+
+        manager-frontend:
+          image: "localhost:30500/flowmaster-manager:latest"
+          replicas: 1
+          status: running
+          purpose: "Manager application frontend"
+
+        nginx:
+          image: "nginx:alpine"
+          replicas: 1
+          status: running
+          purpose: "Reverse proxy and ingress"
+
+        notification:
+          image: "localhost:30500/flowmaster/notification-service:latest"
+          replicas: 1
+          status: running
+          purpose: "Notification delivery service"
+
+        process-analytics:
+          image: "localhost:30500/flowmaster/process-analytics-service:latest"
+          replicas: 1
+          status: running
+          purpose: "Process analytics and reporting"
+
+        process-design:
+          image: "localhost:30500/flowmaster/process-design-service:latest"
+          replicas: 1
+          status: running
+          purpose: "Workflow design and modeling"
+
+        process-linking:
+          image: "localhost:30500/flowmaster/process-linking-service:latest"
+          replicas: 1
+          status: running
+          purpose: "Process linking and composition"
+
+        process-versioning:
+          image: "localhost:30500/flowmaster/process-versioning-service:latest"
+          replicas: 1
+          status: running
+          purpose: "Process version control"
+
+        process-views:
+          image: "localhost:30500/flowmaster/process-views-service:latest"
+          replicas: 1
+          status: running
+          purpose: "Process visualization views"
+
+        prompt-engineering:
+          image: "localhost:30500/flowmaster/prompt-engineering-service:latest"
+          replicas: 1
+          status: running
+          purpose: "AI prompt engineering and management"
+
+        scheduling:
+          image: "localhost:30500/flowmaster/scheduling-service:latest"
+          replicas: 1
+          status: running
+          purpose: "Task and workflow scheduling"
+
+        sdx:
+          image: "localhost:30500/flowmaster/sdx:latest"
+          replicas: 1
+          status: running
+          purpose: "Secure data exchange platform"
+
+        service-registry:
+          image: "localhost:30500/flowmaster/service-registry-service:latest"
+          replicas: 1
+          status: running
+          purpose: "Service discovery and registration"
+
+        websocket-gateway:
+          image: "localhost:30500/flowmaster/websocket-gateway-service:latest"
+          replicas: 1
+          status: running
+          purpose: "WebSocket gateway for real-time communication"
+
+      # Namespace: databases-test (Test databases - 3 deployments)
+      databases-test:
+        arangodb:
+          image: "arangodb:3.11"
+          replicas: 1
+          status: running
+          purpose: "ArangoDB test instance"
+
+        postgres:
+          image: "postgres:15"
+          replicas: 1
+          status: running
+          purpose: "PostgreSQL test instance"
+
+        redis:
+          image: "redis:7-alpine"
+          replicas: 1
+          status: running
+          purpose: "Redis test instance"
+
+      # Namespace: kube-system (Kubernetes core - 2 deployments)
+      kube-system:
+        coredns:
+          image: "rancher/mirrored-coredns-coredns:1.14.0"
+          replicas: 1
+          status: running
+          purpose: "Kubernetes DNS service"
+
+        local-path-provisioner:
+          image: "rancher/local-path-provisioner:v0.0.34"
+          replicas: 1
+          status: running
+          purpose: "Local storage provisioner"
+
+      # Namespace: registry (Container registry - 1 deployment)
+      registry:
+        registry:
+          image: "registry:2"
+          replicas: 1
+          status: running
+          purpose: "Private Docker registry on localhost:30500"
+
+    # --- DOCKER CONTAINERS ---
+    docker:
+
+      # Monitoring Stack
+      grafana:
+        image: "grafana/grafana-oss:latest"
+        status: healthy
+        compose_file: null
+        uptime: "18 hours"
+        purpose: "Monitoring dashboards and visualization"
+
+      prometheus:
+        image: "prom/prometheus:latest"
+        status: healthy
+        compose_file: null
+        uptime: "18 hours"
+        purpose: "Metrics collection and storage"
+
+      grafana-mcp:
+        image: "mcp/grafana"
+        status: healthy
+        compose_file: null
+        uptime: "43 hours"
+        purpose: "Grafana MCP server integration"
+
+      # Plane Project Management (v1.2.1)
+      plane-proxy-1:
+        image: "artifacts.plane.so/makeplane/plane-proxy:stable"
+        status: healthy
+        compose_file: "/opt/plane/docker-compose.yml"
+        uptime: "44 hours"
+        port: 8083
+        purpose: "Plane CE reverse proxy"
+
+      plane-web-1:
+        image: "artifacts.plane.so/makeplane/plane-frontend:stable"
+        status: healthy
+        compose_file: "/opt/plane/docker-compose.yml"
+        uptime: "44 hours"
+        purpose: "Plane web frontend"
+
+      plane-api-1:
+        image: "artifacts.plane.so/makeplane/plane-backend:stable"
+        status: healthy
+        compose_file: "/opt/plane/docker-compose.yml"
+        uptime: "44 hours"
+        purpose: "Plane API backend"
+
+      plane-worker-1:
+        image: "artifacts.plane.so/makeplane/plane-backend:stable"
+        status: healthy
+        compose_file: "/opt/plane/docker-compose.yml"
+        uptime: "44 hours"
+        purpose: "Plane background worker"
+
+      plane-beat-worker-1:
+        image: "artifacts.plane.so/makeplane/plane-backend:stable"
+        status: healthy
+        compose_file: "/opt/plane/docker-compose.yml"
+        uptime: "44 hours"
+        purpose: "Plane scheduled tasks worker"
+
+      plane-admin-1:
+        image: "artifacts.plane.so/makeplane/plane-admin:stable"
+        status: healthy
+        compose_file: "/opt/plane/docker-compose.yml"
+        uptime: "44 hours"
+        purpose: "Plane admin interface"
+
+      plane-space-1:
+        image: "artifacts.plane.so/makeplane/plane-space:stable"
+        status: unhealthy
+        compose_file: "/opt/plane/docker-compose.yml"
+        uptime: "44 hours"
+        purpose: "Plane space service"
+
+      plane-live-1:
+        image: "artifacts.plane.so/makeplane/plane-live:stable"
+        status: healthy
+        compose_file: "/opt/plane/docker-compose.yml"
+        uptime: "44 hours"
+        purpose: "Plane live updates service"
+
+      plane-plane-db-1:
+        image: "postgres:15.7-alpine"
+        status: healthy
+        compose_file: "/opt/plane/docker-compose.yml"
+        uptime: "44 hours"
+        purpose: "Plane PostgreSQL database"
+
+      plane-plane-redis-1:
+        image: "valkey/valkey:7.2.11-alpine"
+        status: healthy
+        compose_file: "/opt/plane/docker-compose.yml"
+        uptime: "44 hours"
+        purpose: "Plane Redis cache"
+
+      plane-plane-minio-1:
+        image: "minio/minio:latest"
+        status: healthy
+        compose_file: "/opt/plane/docker-compose.yml"
+        uptime: "44 hours"
+        purpose: "Plane object storage"
+
+      plane-plane-mq-1:
+        image: "rabbitmq:3.13.6-management-alpine"
+        status: healthy
+        compose_file: "/opt/plane/docker-compose.yml"
+        uptime: "44 hours"
+        purpose: "Plane message queue"
+
+      plane-mcp-server:
+        image: "plane-mcp-server-plane-mcp"
+        status: unhealthy
+        compose_file: "/opt/plane-mcp-server/docker-compose.yml"
+        uptime: "44 hours"
+        port: 8012
+        purpose: "Plane MCP server for Claude integration"
+
+      # SDX Platform
+      sdx-frontend:
+        image: "sdx_sdx-frontend"
+        status: healthy
+        compose_file: "/opt/sdx/docker-compose.yml"
+        uptime: "43 hours"
+        port: 3010
+        purpose: "SDX frontend application"
+
+      sdx-backend:
+        image: "b576acca702c"
+        status: healthy
+        compose_file: "/opt/sdx/docker-compose.yml"
+        uptime: "43 hours"
+        port: 8010
+        purpose: "SDX backend service"
+
+      sdx-mcp-server:
+        image: "sdx_sdx-mcp-server"
+        status: healthy
+        compose_file: "/opt/sdx/docker-compose.yml"
+        uptime: "43 hours"
+        port: 8011
+        purpose: "SDX MCP server (40 tools)"
+
+      arangodb-main:
+        image: "arangodb:3.12.5.2"
+        status: healthy
+        compose_file: "/opt/sdx/docker-compose.yml"
+        uptime: "43 hours"
+        port: 8529
+        purpose: "Main ArangoDB instance (shared by engage, SDX, FlowMaster)"
+
+      # FlowMaster Services (Docker)
+      flowmaster-frontend-nextjs:
+        image: "flowmaster-frontend-nextjs-frontend"
+        status: healthy
+        compose_file: "/opt/flowmaster-rebuild/flowmaster-frontend-nextjs/docker-compose.yml"
+        uptime: "43 hours"
+        purpose: "FlowMaster Next.js frontend"
+
+      flowmaster-api-gateway-service:
+        image: "flowmaster-api-gateway-service-api-gateway-service"
+        status: healthy
+        compose_file: "/opt/flowmaster-rebuild/flowmaster-api-gateway-service/docker-compose.yml"
+        uptime: "43 hours"
+        purpose: "FlowMaster API gateway"
+
+      api-gateway-redis:
+        image: "redis:7-alpine"
+        status: healthy
+        compose_file: "/opt/flowmaster-rebuild/flowmaster-api-gateway-service/docker-compose.yml"
+        uptime: "43 hours"
+        purpose: "API gateway Redis cache"
+
+      flowmaster-websocket-gateway-service:
+        image: "flowmaster-websocket-gateway-service-websocket-gateway-service"
+        status: unhealthy
+        compose_file: "/opt/flowmaster-rebuild/flowmaster-websocket-gateway-service/docker-compose.yml"
+        uptime: "43 hours"
+        purpose: "FlowMaster WebSocket gateway"
+
+      websocket-redis:
+        image: "redis:7-alpine"
+        status: healthy
+        compose_file: "/opt/flowmaster-rebuild/flowmaster-websocket-gateway-service/docker-compose.yml"
+        uptime: "43 hours"
+        purpose: "WebSocket Redis cache"
+
+      flowmaster-auth-service:
+        image: "flowmaster-authentication-service-auth-service"
+        status: healthy
+        compose_file: "/opt/flowmaster-rebuild/services/flowmaster-auth-service/docker-compose.yml"
+        uptime: "43 hours"
+        purpose: "FlowMaster authentication service"
+
+      flowmaster-auth-db:
+        image: "postgres:15-alpine"
+        status: healthy
+        compose_file: "/opt/flowmaster-rebuild/services/flowmaster-auth-service/docker-compose.yml"
+        uptime: "43 hours"
+        purpose: "Auth service PostgreSQL database"
+
+      580769efcb32_flowmaster-auth-redis:
+        image: "redis:7-alpine"
+        status: healthy
+        compose_file: "/opt/flowmaster-rebuild/services/flowmaster-auth-service/docker-compose.yml"
+        uptime: "43 hours"
+        purpose: "Auth service Redis cache"
+
+      flowmaster-pgadmin:
+        image: "dpage/pgadmin4:latest"
+        status: healthy
+        compose_file: null
+        uptime: "43 hours"
+        purpose: "PostgreSQL admin interface"
+
+      flowmaster-execution-arangodb:
+        image: "arangodb:3.11"
+        status: unhealthy
+        compose_file: "/opt/flowmaster-rebuild/services/flowmaster-execution-engine-service/docker-compose.yml"
+        uptime: "43 hours"
+        purpose: "Execution engine ArangoDB"
+
+      flowmaster-execution-redis:
+        image: "redis:7-alpine"
+        status: healthy
+        compose_file: "/opt/flowmaster-rebuild/services/flowmaster-execution-engine-service/docker-compose.yml"
+        uptime: "43 hours"
+        purpose: "Execution engine Redis cache"
+
+      flowmaster-human-task-service:
+        image: "flowmaster-human-task-service_human-task-service"
+        status: healthy
+        compose_file: "/opt/flowmaster-rebuild/services/flowmaster-human-task-service/docker-compose.yml"
+        uptime: "43 hours"
+        purpose: "Human task management service"
+
+      document-intelligence-service-dev:
+        image: "flowmaster-document-intelligence-service_document-intelligence-service"
+        status: healthy
+        compose_file: "/opt/flowmaster-rebuild/services/flowmaster-document-intelligence-service/docker-compose.yml"
+        uptime: "43 hours"
+        purpose: "Document intelligence service"
+
+      arangodb-document-intelligence-local:
+        image: "arangodb:3.11"
+        status: unhealthy
+        compose_file: "/opt/flowmaster-rebuild/services/flowmaster-document-intelligence-service/docker-compose.yml"
+        uptime: "43 hours"
+        purpose: "Document intelligence ArangoDB"
+
+      flowmaster-process-analytics-service:
+        image: "flowmaster-data-intelligence-service_process-analytics-service"
+        status: unhealthy
+        compose_file: null
+        uptime: "43 hours"
+        purpose: "Process analytics service"
+
+      flowmaster-audit-compliance-service:
+        image: "flowmaster-audit-and-compliance-service_audit-compliance-service"
+        status: healthy
+        compose_file: "/opt/flowmaster-rebuild/services/flowmaster-audit-and-compliance-service/docker-compose.yml"
+        uptime: "43 hours"
+        purpose: "Audit and compliance service"
+
+      flowmaster-communication-service:
+        image: "flowmaster-communication-service_communication-service"
+        status: healthy
+        compose_file: "/opt/flowmaster-rebuild/services/flowmaster-communication-service/docker-compose.yml"
+        uptime: "43 hours"
+        purpose: "Communication service"
+
+      flowmaster-process-views-service:
+        image: "flowmaster-process-views-service_process-views-service"
+        status: starting
+        compose_file: null
+        uptime: "16 seconds"
+        purpose: "Process views service"
+
+      flowmaster-legal-entity-service:
+        image: "flowmaster-legal-entity-service_legal-entity-service"
+        status: unhealthy
+        compose_file: null
+        uptime: "43 hours"
+        purpose: "Legal entity management service"
+
+      flowmaster-rules-engine-service:
+        image: "flowmaster-rules-engine-service_rules-engine-service"
+        status: unhealthy
+        compose_file: null
+        uptime: "43 hours"
+        purpose: "Business rules engine service"
+
+      flowmaster-process-linking-service:
+        image: "flowmaster-process-linking-service_process-linking-service"
+        status: healthy
+        compose_file: "/opt/flowmaster-rebuild/services/flowmaster-process-linking-service/docker-compose.yml"
+        uptime: "43 hours"
+        purpose: "Process linking service"
+
+      flowmaster-process-versioning-service:
+        image: "flowmaster-process-versioning-service_process-versioning-service"
+        status: starting
+        compose_file: null
+        uptime: "16 seconds"
+        purpose: "Process versioning service"
+
+      flowmaster-service-registry-service:
+        image: "flowmaster-service-registry-service_service-registry"
+        status: healthy
+        compose_file: null
+        uptime: "42 hours"
+        purpose: "Service registry and discovery"
+
+      flowmaster-service-registry-db:
+        image: "postgres:15-alpine"
+        status: healthy
+        compose_file: null
+        uptime: "42 hours"
+        purpose: "Service registry PostgreSQL database"
+
+      flowmaster-service-registry-redis:
+        image: "redis:7-alpine"
+        status: healthy
+        compose_file: null
+        uptime: "42 hours"
+        purpose: "Service registry Redis cache"
+
+      flowmaster-external-integration-service:
+        image: "flowmaster-external-integration-service_external-integration-service"
+        status: unhealthy
+        compose_file: null
+        uptime: "42 hours"
+        purpose: "External integration service"
+
+      flowmaster-prompt-engineering-service:
+        image: "flowmaster-prompt-engineering-service_prompt-engineering-service"
+        status: unhealthy
+        compose_file: null
+        uptime: "42 hours"
+        purpose: "Prompt engineering service"
+
+      arangodb-process-design-local:
+        image: "arangodb:3.11"
+        status: healthy
+        compose_file: null
+        uptime: "42 hours"
+        purpose: "Process design ArangoDB"
+
+      process-design-service-dev:
+        image: "flowmaster-process-design-service_process-design-service"
+        status: unhealthy
+        compose_file: null
+        uptime: "42 hours"
+        purpose: "Process design service"
+
+      flowmaster-execution-engine:
+        image: "flowmaster-execution-engine-service_execution-engine"
+        status: unhealthy
+        compose_file: "/opt/flowmaster-rebuild/services/flowmaster-execution-engine-service/docker-compose.yml"
+        uptime: "42 hours"
+        purpose: "Workflow execution engine"
+
+    # --- SYSTEMD SERVICES ---
+    systemd:
+      agent-chat:
+        script: "/opt/agent-chat-server.py"
+        status: running
+        port: 8099
+        pid: 978
+        purpose: "Agent chat room server (POST /send, GET /messages, GET /agents)"
+        notes: "Python service for agent collaboration"
+
+    # --- SUMMARY ---
+    summary:
+      k3s_namespaces: 7
+      k3s_deployments: 42
+      docker_containers: 53
+      systemd_services: 1
+      total_services: 96
+      notes: |
+        - K3S registry on localhost:30500
+        - Some services unhealthy but running (health checks may be misconfigured)
+        - Plane CE v1.2.1 fully deployed
+        - FlowMaster split between K3S (newer) and Docker (legacy)
+
+  # =============================================
+  # DEV-02: High-Performance Development Server
+  # 65.21.52.58 | CCX33, 8 CPU, 240GB | Helsinki
+  # Platform: K3S Kubernetes
+  # =============================================
+
+  dev-02:
+    server_info:
+      ip: 65.21.52.58
+      platform: "K3S Kubernetes"
+      purpose: "High-performance dev server for agent pods and heavy builds"
+      last_updated: "2026-02-14"
+      status: "Not yet deployed - SSH key setup pending"
+
+    notes: |
+      - NEW server (added Feb 2026)
+      - 8 dedicated CPUs for heavy parallel workloads
+      - Intended for claude-pod deployments and CI builds
+      - TODO: Generate and authorize SSH key (id_ed25519_dev02)
+      - TODO: Run discovery once access is configured
+
+  # =============================================
+  # PLAYGROUND: Personal Experiments
+  # 89.167.2.145 | CX33, 80GB | Helsinki
+  # Platform: Docker only (no K3S)
+  # =============================================
+
+  playground:
+    server_info:
+      ip: 89.167.2.145
+      platform: "Docker + Docker Compose (classic)"
+      purpose: "Personal pilot/experiment server (Benjamin)"
+      last_updated: "2026-02-14"
+      status: "Not yet inventoried - SSH key setup pending"
+
+    notes: |
+      - Personal server for pilots and experiments
+      - Classic Docker setup (NOT K3S)
+      - NO CI/CD pipeline - manual deployments only
+      - TODO: Generate and authorize SSH key (id_ed25519_playground)
+      - TODO: Run discovery once access is configured
+
+  # =============================================
+  # PROD-01: Production Environment
+  # 91.99.237.14 | CPX41, 250GB | Nuremberg
+  # Platform: Docker Compose
+  # =============================================
+
+  prod-01:
+    server_info:
+      ip: 91.99.237.14
+      platform: "Docker + Docker Compose"
+      purpose: "Production - FlowMaster app + company website"
+      last_updated: "2026-02-14"
+      status: "Not yet inventoried - SSH access to verify"
+
+    docker:
+      # Known production services
+      flowmaster-production:
+        domain: "app.flow-master.ai"
+        purpose: "FlowMaster production application"
+        notes: "CI/CD auto-deployment via GitLab"
+
+      company-website:
+        domain: "www.flow-master.ai"
+        purpose: "Company website"
+        notes: "Nginx reverse proxy with Let's Encrypt SSL"
+
+    notes: |
+      - Production only - no dev/staging
+      - SSL certificates managed by Let's Encrypt / certbot
+      - Auto-deployment via GitLab CI/CD
+      - TODO: SSH to inventory actual running containers
+      - TODO: Document compose file locations
+
+# =============================================
+# DISCOVERY AUTOMATION
+# =============================================
+
+discovery:
+  last_run: "2026-02-14"
+  script_location: "~/projects/claude-config-loader/scripts/discover-deployments.sh"
+  notes: |
+    Run discover-deployments.sh to automatically refresh deployment data.
+    Script should:
+    1. SSH to each server with -p 22
+    2. Query kubectl for K3S deployments
+    3. Query docker ps for containers
+    4. Query systemd for services
+    5. Update this YAML file
+    6. Commit changes to Git
+
+# =============================================
+# NOTES
+# =============================================
+
+notes:
+  - "This file tracks ACTUAL running deployments (what IS deployed)"
+  - "servers.yaml tracks server specs and capabilities (what CAN be deployed)"
+  - "ports.yaml tracks port allocation (what ports are in use)"
+  - "Update this file when deploying/removing services"
+  - "Some K3S services are marked unhealthy but still running (health check issues)"
+  - "FlowMaster services exist in both K3S (newer) and Docker (legacy/transition)"
+  - "Private registry at localhost:30500 on dev-01 for K3S images"
