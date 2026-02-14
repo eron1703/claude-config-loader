@@ -10,7 +10,7 @@ disable-model-invocation: false
 
 ## Overview
 
-FlowMaster is a modular microservices platform with **29 services deployed and running** on K3S (demo server 65.21.153.235). All 79 requirements (R01-R79) have code deployed. **ALL services are UNTESTED** — no integration, health check, or e2e testing performed.
+FlowMaster is a modular microservices platform with **29 services deployed and running** on K3S (dev-01 server 65.21.153.235). All 79 requirements (R01-R79) have code deployed. **ALL services are UNTESTED** — no integration, health check, or e2e testing performed.
 
 Each service owns its database and communicates via Event Bus (async) and REST APIs (sync).
 

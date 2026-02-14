@@ -10,7 +10,7 @@ disable-model-invocation: false
 
 ## Executive Summary
 
-FlowMaster is a **microservices-based business process automation platform** for designing, executing, and monitoring workflows with AI integration. As of Feb 8 2026, **29 services are deployed and running** on a K3S Kubernetes cluster (demo server 65.21.153.235), covering all 79 requirements (R01-R79). Code is deployed but **ALL services are UNTESTED** — no integration, e2e, or health check testing has been performed.
+FlowMaster is a **microservices-based business process automation platform** for designing, executing, and monitoring workflows with AI integration. As of Feb 8 2026, **29 services are deployed and running** on a K3S Kubernetes cluster (dev-01 server 65.21.153.235), covering all 79 requirements (R01-R79). Code is deployed but **ALL services are UNTESTED** — no integration, e2e, or health check testing has been performed.
 
 **Source Control**: GitLab `flow-master` group (primary), mirrored to GitHub `HCB-Consulting-ME`.
 **Code locations**: ~/projects/documentation (stale copies), ~/projects/flowmaster/ (working dir, not a git repo).
@@ -147,12 +147,13 @@ WARNING: ClusterIPs are hardcoded in nginx config, will change if services recre
 
 | Server | IP | URL | Status (Feb 8) |
 |--------|-----|-----|----------------|
-| **Demo** | 65.21.153.235 | — | UP, K3S, 29 pods + SDX (Docker) |
+| **Dev-01** | 65.21.153.235 | — | UP, K3S, 29 pods + SDX (Docker) |
+| **Dev-02** | 65.21.52.58 | — | High-perf dev, agent pods |
+| **Playground** | 89.167.2.145 | — | Pilots, classic Docker |
 | **Production** | 91.99.237.14 | app.flow-master.ai | UP (HTTP 200), Docker Compose |
-| **Staging** | 91.98.159.56 | staging.flow-master.ai | DOWN (unreachable) |
-| **Dev** | 91.98.159.56 | dev.flow-master.ai | DOWN (unreachable) |
+| **Staging/Dev (old)** | 91.98.159.56 | staging.flow-master.ai, dev.flow-master.ai | DECOMMISSIONED |
 
-**Note:** Demo server has ONE FlowMaster environment (not separate dev/test/staging). SDX is part of FlowMaster (currently standalone Docker, should be in K3S). Plane CE is a separate project management tool, not part of the product.
+**Note:** Dev-01 server has ONE FlowMaster environment (not separate dev/test/staging). SDX is part of FlowMaster (currently standalone Docker, should be in K3S). Plane CE is a separate project management tool, not part of the product.
 
 ---
 

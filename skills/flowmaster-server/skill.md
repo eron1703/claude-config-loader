@@ -14,17 +14,18 @@ disable-model-invocation: false
 
 | Server | IP | URL | Deployment | Status (Feb 8) |
 |--------|-----|-----|-----------|----------------|
-| **Demo** | 65.21.153.235 | — | K3S cluster | UP, 29 pods running |
+| **Dev-01** | 65.21.153.235 | — | K3S cluster | UP, 29 pods running |
+| **Dev-02** | 65.21.52.58 | — | K3S cluster | High-perf dev, agent pods |
+| **Playground** | 89.167.2.145 | — | Classic Docker | Pilots, demos |
 | **Production** | 91.99.237.14 | app.flow-master.ai | Docker Compose | UP (HTTP 200) |
-| **Staging** | 91.98.159.56 | staging.flow-master.ai | Docker Compose | DOWN (unreachable) |
-| **Dev** | 91.98.159.56 | dev.flow-master.ai | Docker Compose | DOWN (unreachable) |
+| **Staging/Dev (old)** | 91.98.159.56 | staging.flow-master.ai, dev.flow-master.ai | Docker Compose | DECOMMISSIONED |
 
-**SSH Access (Demo only):** `demo-server` (user: ben) or `demo-server-root` (user: root)
+**SSH Access (dev-01 only):** `dev-01` (user: ben) or `dev-01-root` (user: root)
 **OS:** Ubuntu 24.04.3 LTS
 
 ---
 
-## Demo Server (65.21.153.235) — PRIMARY
+## Dev-01 Server (65.21.153.235) — PRIMARY
 
 ### 3 FlowMaster Environments on K3S
 
@@ -111,7 +112,7 @@ disable-model-invocation: false
 
 ---
 
-## Network Architecture (Demo Server)
+## Network Architecture (Dev-01 Server)
 
 **CURRENT ROUTING (as of 2026-02-11):**
 
@@ -173,7 +174,7 @@ All 14 K3S deployments have `imagePullPolicy: Always`.
 
 ---
 
-## Directory Structure (Demo Server)
+## Directory Structure (Dev-01 Server)
 
 ```
 /opt/flowmaster-deployments/    # Legacy staging compose (not actively used)
@@ -213,7 +214,7 @@ K3S manages FlowMaster services (not Docker Compose).
 
 ## Common Troubleshooting Commands
 
-### K3S (Demo Server)
+### K3S (Dev-01 Server)
 ```bash
 # Check all pods
 kubectl get pods -n flowmaster
@@ -234,7 +235,7 @@ kubectl get svc -n flowmaster
 kubectl top pods -n flowmaster
 ```
 
-### Nginx (Demo Server)
+### Nginx (Dev-01 Server)
 ```bash
 # Test config
 sudo nginx -t
@@ -246,7 +247,7 @@ sudo systemctl reload nginx
 cat /etc/nginx/sites-enabled/flowmaster
 ```
 
-### Docker (Demo Server - Plane/SDX)
+### Docker (Dev-01 Server - Plane/SDX)
 ```bash
 # Check Plane containers
 docker ps | grep plane
